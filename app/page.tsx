@@ -97,8 +97,8 @@ const dashboardGoals = [
   { id: 'run-10-official', title: 'Пробежать официально 10 км', source: 'run-10' },
   { id: 'run-half', title: 'Пробежать полумарафон', source: 'run-21' },
   { id: 'run-marathon', title: 'Пробежать марафон', source: 'run-42' },
-  { id: 'interview-200', title: 'Пройти собеседование на зарплату 200к+', source: 'interview' },
-  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до Senior', source: 'course' },
+  { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
+  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
 ] as const;
 
 export default function HomePage() {

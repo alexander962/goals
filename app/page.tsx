@@ -28,7 +28,10 @@ import {
   emptyState,
   formatNorm,
   gtoBadgePercent,
-  gtoNormPercent,
+  gtoCategoryPercent,
+  gtoMedalReadiness,
+  gtoTotalPercent,
+  groupGtoNorms,
   parseMetric,
   taskStagePercent,
   taskTotalPercent,
@@ -88,7 +91,7 @@ export default function HomePage() {
   }, [hydrated, state]);
 
   const stats = useMemo(() => {
-    const gto = average(gtoNorms.map((norm) => gtoNormPercent(norm, state.gto[norm.id] ?? '')));
+    const gto = gtoTotalPercent(gtoNorms, state.gto);
     const marathon = average(
       marathonDistances.map((distance) => {
         const km = Number((state.marathon[distance.id]?.km ?? '').replace(',', '.')) || 0;
@@ -227,12 +230,10 @@ function Dashboard({ stats }: { stats: DashboardStats }) {
 }
 
 function GtoPage({ state, setGto }: { state: AppState; setGto: (id: string, value: string) => void }) {
-  const grouped = gtoNorms.reduce<Record<string, typeof gtoNorms>>((acc, norm) => {
-    acc[norm.category] = [...(acc[norm.category] ?? []), norm];
-    return acc;
-  }, {});
+  const grouped = groupGtoNorms(gtoNorms);
   const badges: Badge[] = ['gold', 'silver', 'bronze'];
-  const total = average(gtoNorms.map((norm) => gtoNormPercent(norm, state.gto[norm.id] ?? '')));
+  const readiness = gtoMedalReadiness(gtoNorms, state.gto);
+  const total = gtoTotalPercent(gtoNorms, state.gto);
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
@@ -248,7 +249,7 @@ function GtoPage({ state, setGto }: { state: AppState; setGto: (id: string, valu
           <section className={styles.panel} key={category}>
             <div className={styles.panelTitle}>
               <h2>{category}</h2>
-              <span>{average((norms ?? []).map((norm) => gtoNormPercent(norm, state.gto[norm.id] ?? '')))}%</span>
+              <span>{gtoCategoryPercent(norms ?? [], state.gto)}%</span>
             </div>
             <div className={styles.normList}>
               {(norms ?? []).map((norm) => (
@@ -283,6 +284,44 @@ function GtoPage({ state, setGto }: { state: AppState; setGto: (id: string, valu
             </div>
           </section>
         ))}
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>Готовность к знакам</h2>
+            <span>{total}%</span>
+          </div>
+          <div className={styles.medalGrid}>
+            {readiness.map((item) => (
+              <article className={`${styles.medalCard} ${item.ready ? styles.medalReady : ''}`} key={item.badge}>
+                <div className={styles.medalHead}>
+                  <ProgressRing
+                    value={item.percent}
+                    size={104}
+                    stroke={10}
+                    color={item.badge === 'gold' ? '#c99a43' : item.badge === 'silver' ? '#8c99a8' : '#b8755c'}
+                  />
+                  <div>
+                    <span>{badgeLabels[item.badge]}</span>
+                    <strong>{item.ready ? 'Готов' : 'В процессе'}</strong>
+                  </div>
+                </div>
+                <div className={styles.requirements}>
+                  <div>
+                    <span>Физические качества, способности, прикладные навыки</span>
+                    <strong>
+                      {item.completedQualities} / {item.requirements.qualities}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Испытания, которые нужно выполнить</span>
+                    <strong>
+                      {item.completedTests} / {item.requirements.tests}
+                    </strong>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </motion.div>
   );

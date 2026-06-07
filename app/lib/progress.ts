@@ -39,6 +39,12 @@ export const taskScore: Record<TaskStatus, number> = {
   solving: 100,
 };
 
+export const gtoMedalRequirements: Record<Badge, { qualities: number; tests: number }> = {
+  gold: { qualities: 6, tests: 6 },
+  silver: { qualities: 5, tests: 5 },
+  bronze: { qualities: 5, tests: 5 },
+};
+
 export function clampPercent(value: number) {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -71,6 +77,54 @@ export function gtoBadgePercent(norm: GtoNorm, badge: Badge, value: string) {
 
 export function gtoNormPercent(norm: GtoNorm, value: string) {
   return Math.max(...(['gold', 'silver', 'bronze'] as Badge[]).map((badge) => gtoBadgePercent(norm, badge, value)));
+}
+
+export function groupGtoNorms(norms: GtoNorm[]) {
+  return norms.reduce<Record<string, GtoNorm[]>>((acc, norm) => {
+    acc[norm.category] = [...(acc[norm.category] ?? []), norm];
+    return acc;
+  }, {});
+}
+
+export function gtoCategoryPercent(norms: GtoNorm[], values: AppState['gto']) {
+  return Math.max(...norms.map((norm) => gtoNormPercent(norm, values[norm.id] ?? '')), 0);
+}
+
+export function gtoCategoryBadgePercent(norms: GtoNorm[], badge: Badge, values: AppState['gto']) {
+  return Math.max(...norms.map((norm) => gtoBadgePercent(norm, badge, values[norm.id] ?? '')), 0);
+}
+
+export function gtoCompletedTests(norms: GtoNorm[], badge: Badge, values: AppState['gto']) {
+  return norms.filter((norm) => gtoBadgePercent(norm, badge, values[norm.id] ?? '') >= 100).length;
+}
+
+export function gtoMedalReadiness(norms: GtoNorm[], values: AppState['gto']) {
+  const grouped = groupGtoNorms(norms);
+
+  return (['gold', 'silver', 'bronze'] as Badge[]).map((badge) => {
+    const requirements = gtoMedalRequirements[badge];
+    const completedQualities = Object.values(grouped).filter(
+      (categoryNorms) => gtoCategoryBadgePercent(categoryNorms, badge, values) >= 100,
+    ).length;
+    const completedTests = gtoCompletedTests(norms, badge, values);
+    const qualitiesPercent = clampPercent((completedQualities / requirements.qualities) * 100);
+    const testsPercent = clampPercent((completedTests / requirements.tests) * 100);
+
+    return {
+      badge,
+      completedQualities,
+      completedTests,
+      qualitiesPercent,
+      testsPercent,
+      requirements,
+      ready: completedQualities >= requirements.qualities && completedTests >= requirements.tests,
+      percent: Math.min(qualitiesPercent, testsPercent),
+    };
+  });
+}
+
+export function gtoTotalPercent(norms: GtoNorm[], values: AppState['gto']) {
+  return Math.max(...gtoMedalReadiness(norms, values).map((readiness) => readiness.percent), 0);
 }
 
 export function counterPercent(value?: CounterValue) {

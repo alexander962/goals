@@ -1,0 +1,45 @@
+.control {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(18, 28, 39, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.option {
+  min-height: 36px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #657282;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.option:hover {
+  transform: translateY(-1px);
+}
+
+.active {
+  color: #fff;
+}
+
+.calm .active {
+  background: #121c27;
+}
+
+.sport .active {
+  background: #18a999;
+}
+
+.focus .active {
+  background: #6d7dfc;
+}

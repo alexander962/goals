@@ -1,0 +1,528 @@
+.shell {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100vh;
+  padding: 28px 20px;
+  border-right: 1px solid rgba(18, 28, 39, 0.08);
+  background: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(22px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand svg {
+  color: #c99a43;
+}
+
+.brand strong,
+.brand span {
+  display: block;
+}
+
+.brand strong {
+  color: #121c27;
+  font-size: 1rem;
+}
+
+.brand span {
+  color: #657282;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.nav {
+  display: grid;
+  gap: 8px;
+}
+
+.nav button,
+.saveBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #657282;
+  font-weight: 850;
+}
+
+.nav button {
+  padding: 0 14px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav button:hover {
+  transform: translateX(2px);
+  color: #121c27;
+}
+
+.nav .activeNav {
+  border-color: rgba(18, 28, 39, 0.08);
+  background: #121c27;
+  color: #fff;
+  box-shadow: 0 16px 36px rgba(18, 28, 39, 0.14);
+}
+
+.saveBadge {
+  margin-top: auto;
+  padding: 0 12px;
+  background: rgba(24, 169, 153, 0.1);
+  color: #168f82;
+  font-size: 0.84rem;
+}
+
+.content {
+  width: min(1320px, 100%);
+  padding: 34px clamp(18px, 4vw, 48px) 56px;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.statCard,
+.panel,
+.distanceCard,
+.courseCard {
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 20px 50px rgba(18, 28, 39, 0.08);
+}
+
+.statCard {
+  display: grid;
+  min-height: 260px;
+  padding: 20px;
+  place-items: center;
+  text-align: center;
+}
+
+.statCard h2 {
+  margin: 0;
+  color: #121c27;
+  font-size: 1.15rem;
+}
+
+.stack {
+  display: grid;
+  gap: 18px;
+}
+
+.panel {
+  padding: clamp(16px, 3vw, 26px);
+}
+
+.panelTitle,
+.stageHead,
+.distanceTop,
+.paceLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.panelTitle {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(18, 28, 39, 0.1);
+}
+
+.panelTitle h2,
+.stageHead h3,
+.distanceTop h2 {
+  margin: 0;
+  color: #121c27;
+}
+
+.panelTitle span {
+  color: #18a999;
+  font-size: 1.5rem;
+  font-weight: 950;
+}
+
+.normList,
+.taskList {
+  display: grid;
+  gap: 12px;
+}
+
+.normRow {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) 170px minmax(360px, 1.8fr);
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.58);
+}
+
+.normRow h3 {
+  margin: 0 0 4px;
+  color: #121c27;
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.normRow span,
+.distanceTop span,
+.theoryRow span {
+  color: #657282;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.normRow input,
+.distanceCard input,
+.counters input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(18, 28, 39, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #121c27;
+  font-weight: 850;
+  outline: none;
+  padding: 0 12px;
+}
+
+.normRow input:focus,
+.distanceCard input:focus,
+.counters input:focus {
+  border-color: #18a999;
+  box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
+}
+
+.badges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.badge {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.badge span {
+  color: #657282;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: none;
+}
+
+.distanceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.distanceCard {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.distanceTop h2 {
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.9;
+}
+
+.distanceCard label {
+  display: grid;
+  gap: 8px;
+  color: #657282;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.paceLine {
+  min-height: 44px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(18, 28, 39, 0.1);
+  color: #657282;
+  font-weight: 850;
+}
+
+.paceLine strong {
+  color: #121c27;
+}
+
+.courseSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.courseSummary div {
+  min-height: 94px;
+  padding: 18px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.courseSummary strong,
+.courseSummary span {
+  display: block;
+}
+
+.courseSummary strong {
+  color: #121c27;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.courseSummary span {
+  margin-top: 8px;
+  color: #657282;
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.courseCard {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.courseTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.moduleNumber {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: rgba(223, 91, 125, 0.12);
+  color: #df5b7d;
+  font-weight: 950;
+  place-items: center;
+}
+
+.courseCard h2 {
+  min-height: 52px;
+  margin: 0;
+  color: #121c27;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lessonList {
+  display: grid;
+  gap: 8px;
+}
+
+.lessonRow {
+  display: block;
+}
+
+.lessonRow input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lessonRow span {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.55);
+  color: #657282;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 780;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lessonRow span:hover {
+  transform: translateY(-1px);
+  border-color: rgba(223, 91, 125, 0.25);
+}
+
+.lessonRow svg {
+  color: rgba(18, 28, 39, 0.22);
+  margin-top: 1px;
+}
+
+.lessonDone {
+  border-color: rgba(223, 91, 125, 0.24) !important;
+  background: rgba(223, 91, 125, 0.1) !important;
+  color: #121c27 !important;
+}
+
+.lessonDone svg {
+  color: #df5b7d;
+}
+
+.interviewLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.stage {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.48);
+}
+
+.theoryRow,
+.taskRow {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.theoryRow > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.theoryRow strong,
+.taskRow strong {
+  min-width: 0;
+  color: #121c27;
+  overflow-wrap: anywhere;
+}
+
+.counters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.counters label {
+  display: grid;
+  gap: 6px;
+  color: #657282;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+@media (max-width: 1180px) {
+  .dashboardGrid,
+  .distanceGrid,
+  .interviewLayout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .normRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    padding: 16px;
+  }
+
+  .nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .saveBadge {
+    margin-top: 0;
+  }
+
+  .dashboardGrid,
+  .distanceGrid,
+  .interviewLayout,
+  .courseSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .badges,
+  .counters {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .content {
+    padding-inline: 12px;
+  }
+
+  .courseGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav {
+    grid-template-columns: 1fr;
+  }
+
+  .panelTitle,
+  .stageHead,
+  .distanceTop,
+  .paceLine {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

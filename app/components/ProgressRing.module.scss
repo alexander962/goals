@@ -1,0 +1,48 @@
+.ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.ring svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.track,
+.value {
+  fill: none;
+}
+
+.track {
+  stroke: rgba(18, 28, 39, 0.1);
+}
+
+.value {
+  stroke-linecap: round;
+  filter: drop-shadow(0 8px 14px rgba(24, 169, 153, 0.22));
+}
+
+.content {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  text-align: center;
+}
+
+.content strong {
+  color: #121c27;
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+  line-height: 1;
+}
+
+.content span {
+  color: #657282;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}

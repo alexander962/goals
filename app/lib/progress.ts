@@ -16,6 +16,7 @@ export type AppState = {
   theoryStatus: Record<string, Confidence>;
   taskStatus: Record<string, TaskStatus>;
   courseCompleted: Record<string, boolean>;
+  completedGoals: Record<string, boolean>;
 };
 
 export const emptyState: AppState = {
@@ -25,6 +26,7 @@ export const emptyState: AppState = {
   theoryStatus: {},
   taskStatus: {},
   courseCompleted: {},
+  completedGoals: {},
 };
 
 export const confidenceScore: Record<Confidence, number> = {

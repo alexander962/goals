@@ -2,7 +2,22 @@
 
 import { motion } from 'framer-motion';
 import type { ElementType } from 'react';
-import { Activity, BookOpen, Brain, CheckCircle2, Dumbbell, Gauge, Home, Medal, Route, Save, Trophy } from 'lucide-react';
+import {
+  Activity,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Dumbbell,
+  Flame,
+  Gauge,
+  Home,
+  Medal,
+  PartyPopper,
+  Route,
+  Save,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { ProgressRing } from './components/ProgressRing';
 import { SectionHeader } from './components/SectionHeader';
@@ -75,6 +90,17 @@ const taskOptions = [
   { value: 'cannot', label: 'Не могу' },
 ] satisfies { value: TaskStatus; label: string }[];
 
+const dashboardGoals = [
+  { id: 'gto-bronze', title: 'Получить бронзовый значок ГТО', source: 'gto-bronze' },
+  { id: 'gto-silver', title: 'Получить серебряный значок ГТО', source: 'gto-silver' },
+  { id: 'gto-gold', title: 'Получить золотой значок ГТО', source: 'gto-gold' },
+  { id: 'run-10-official', title: 'Пробежать официально 10 км', source: 'run-10' },
+  { id: 'run-half', title: 'Пробежать полумарафон', source: 'run-21' },
+  { id: 'run-marathon', title: 'Пробежать марафон', source: 'run-42' },
+  { id: 'interview-200', title: 'Пройти собеседование на зарплату 200к+', source: 'interview' },
+  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до Senior', source: 'course' },
+] as const;
+
 export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
   const [state, setState] = useState<AppState>(emptyState);
@@ -143,6 +169,10 @@ export default function HomePage() {
     setState((current) => ({ ...current, courseCompleted: { ...current.courseCompleted, [id]: checked } }));
   };
 
+  const setDashboardGoal = (id: string, checked: boolean) => {
+    setState((current) => ({ ...current, completedGoals: { ...current.completedGoals, [id]: checked } }));
+  };
+
   return (
     <main className={styles.shell}>
       <aside className={styles.sidebar}>
@@ -176,7 +206,7 @@ export default function HomePage() {
       </aside>
 
       <section className={styles.content}>
-        {page === 'dashboard' && <Dashboard stats={stats} />}
+        {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
         {page === 'gto' && <GtoPage state={state} setGto={setGto} />}
         {page === 'marathon' && <MarathonPage state={state} setMarathon={setMarathon} />}
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
@@ -194,7 +224,38 @@ export default function HomePage() {
   );
 }
 
-function Dashboard({ stats }: { stats: DashboardStats }) {
+function getRunReadiness(state: AppState, distanceId: string) {
+  const distance = marathonDistances.find((item) => item.id === distanceId);
+  if (!distance) return 0;
+  const progress = state.marathon[distance.id];
+  const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
+  return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
+}
+
+function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats, state: AppState) {
+  if (source === 'interview') return stats.interview;
+  if (source === 'course') return stats.course;
+  if (source === 'run-10' || source === 'run-21' || source === 'run-42') return getRunReadiness(state, source);
+
+  const badge = source.replace('gto-', '') as Badge;
+  return gtoMedalReadiness(gtoNorms, state.gto).find((item) => item.badge === badge)?.percent ?? 0;
+}
+
+function getReadinessMeta(value: number) {
+  if (value < 50) return { className: styles.goalCold, label: 'рано', Icon: Gauge };
+  if (value < 80) return { className: styles.goalWarm, label: 'близко', Icon: Flame };
+  return { className: styles.goalHot, label: 'можно пробовать', Icon: Sparkles };
+}
+
+function Dashboard({
+  stats,
+  state,
+  setDashboardGoal,
+}: {
+  stats: DashboardStats;
+  state: AppState;
+  setDashboardGoal: (id: string, checked: boolean) => void;
+}) {
   const cards = [
     { label: 'ГТО', value: stats.gto, color: '#c99a43', icon: Dumbbell },
     { label: 'Марафон', value: stats.marathon, color: '#18a999', icon: Activity },
@@ -202,6 +263,13 @@ function Dashboard({ stats }: { stats: DashboardStats }) {
     { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
   ];
+  const goals = dashboardGoals
+    .map((goal) => ({
+      ...goal,
+      completed: Boolean(state.completedGoals[goal.id]),
+      readiness: getGoalReadiness(goal.source, stats, state),
+    }))
+    .sort((a, b) => Number(a.completed) - Number(b.completed) || b.readiness - a.readiness);
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
@@ -229,6 +297,56 @@ function Dashboard({ stats }: { stats: DashboardStats }) {
           );
         })}
       </div>
+      <section className={styles.goalsPanel}>
+        <div className={styles.panelTitle}>
+          <h2>Цели</h2>
+          <span>{goals.filter((goal) => goal.completed).length} / {goals.length}</span>
+        </div>
+        <div className={styles.goalsList}>
+          {goals.map((goal) => {
+            const meta = getReadinessMeta(goal.readiness);
+            const Icon = meta.Icon;
+            return (
+              <motion.article
+                layout
+                className={`${styles.goalRow} ${meta.className} ${goal.completed ? styles.goalDone : ''}`}
+                key={goal.id}
+              >
+                <label className={styles.goalCheck}>
+                  <input
+                    type="checkbox"
+                    checked={goal.completed}
+                    onChange={(event) => setDashboardGoal(goal.id, event.target.checked)}
+                  />
+                  <span>
+                    <CheckCircle2 size={20} />
+                  </span>
+                </label>
+                <div className={styles.goalText}>
+                  <strong>{goal.title}</strong>
+                  {!goal.completed ? (
+                    <small>
+                      <Icon size={15} />
+                      {meta.label}
+                    </small>
+                  ) : null}
+                </div>
+                {goal.completed ? (
+                  <div className={styles.goalTrophy} aria-label="Цель закрыта">
+                    <Sparkles size={18} />
+                    <Trophy size={34} />
+                    <PartyPopper size={18} />
+                  </div>
+                ) : (
+                  <div className={styles.goalProgress}>
+                    <ProgressRing value={goal.readiness} size={72} stroke={7} color="#18a999" />
+                  </div>
+                )}
+              </motion.article>
+            );
+          })}
+        </div>
+      </section>
     </motion.div>
   );
 }

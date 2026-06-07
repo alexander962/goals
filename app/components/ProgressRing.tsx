@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import type { CSSProperties } from 'react';
 import styles from './ProgressRing.module.scss';
 
 type Props = {
@@ -15,9 +16,15 @@ export function ProgressRing({ value, size = 132, stroke = 12, label, color = '#
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
+  const ringStyle = {
+    width: size,
+    height: size,
+    '--ring-size': `${size}px`,
+    '--ring-stroke': `${stroke}px`,
+  } as CSSProperties;
 
   return (
-    <div className={styles.ring} style={{ width: size, height: size }}>
+    <div className={styles.ring} style={ringStyle}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle
           className={styles.track}

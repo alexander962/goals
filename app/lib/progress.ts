@@ -11,7 +11,7 @@ export type CounterValue = {
 
 export type AppState = {
   gto: Record<string, string>;
-  marathon: Record<string, { km: string; time: string }>;
+  marathon: Record<string, { km?: string; time: string; completed?: boolean }>;
   theoryCounters: Record<string, CounterValue>;
   theoryStatus: Record<string, Confidence>;
   taskStatus: Record<string, TaskStatus>;

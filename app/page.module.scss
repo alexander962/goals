@@ -83,6 +83,17 @@
   box-shadow: 0 16px 36px rgba(18, 28, 39, 0.14);
 }
 
+.nav .activeNav:hover {
+  transform: translateX(0);
+  border-color: rgba(24, 169, 153, 0.28);
+  background: #203142;
+  color: #fff;
+}
+
+.nav .activeNav svg {
+  color: currentColor;
+}
+
 .saveBadge {
   margin-top: auto;
   padding: 0 12px;
@@ -326,8 +337,18 @@
 }
 
 .distanceTop h2 {
-  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  font-size: clamp(2.3rem, 4vw, 4rem);
   line-height: 0.9;
+}
+
+.distanceTop h2 small {
+  color: #121c27;
+  font-size: 0.46em;
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .distanceCard label {
@@ -336,6 +357,35 @@
   color: #657282;
   font-size: 0.84rem;
   font-weight: 900;
+}
+
+.runToggle {
+  min-height: 48px;
+  border: 1px solid rgba(18, 28, 39, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #657282;
+  cursor: pointer;
+  font-weight: 900;
+  text-align: left;
+  padding: 0 14px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.runToggle:hover {
+  transform: translateY(-1px);
+  border-color: rgba(24, 169, 153, 0.3);
+  color: #121c27;
+}
+
+.runToggleActive {
+  border-color: rgba(24, 169, 153, 0.32);
+  background: rgba(24, 169, 153, 0.12);
+  color: #168f82;
 }
 
 .paceLine {

@@ -94,8 +94,9 @@ export default function HomePage() {
     const gto = gtoTotalPercent(gtoNorms, state.gto);
     const marathon = average(
       marathonDistances.map((distance) => {
-        const km = Number((state.marathon[distance.id]?.km ?? '').replace(',', '.')) || 0;
-        return Math.min(100, Math.round((km / distance.distance) * 100));
+        const progress = state.marathon[distance.id];
+        const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
+        return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
       }),
     );
     const theory = theoryTotalPercent(theoryStages, state);
@@ -109,10 +110,13 @@ export default function HomePage() {
     setState((current) => ({ ...current, gto: { ...current.gto, [id]: value } }));
   };
 
-  const setMarathon = (id: string, field: 'km' | 'time', value: string) => {
+  const setMarathon = (id: string, patch: Partial<{ time: string; completed: boolean }>) => {
     setState((current) => ({
       ...current,
-      marathon: { ...current.marathon, [id]: { ...current.marathon[id], [field]: value } },
+      marathon: {
+        ...current.marathon,
+        [id]: { ...({ time: '' } satisfies { time: string }), ...current.marathon[id], ...patch },
+      },
     }));
   };
 
@@ -332,12 +336,13 @@ function MarathonPage({
   setMarathon,
 }: {
   state: AppState;
-  setMarathon: (id: string, field: 'km' | 'time', value: string) => void;
+  setMarathon: (id: string, patch: Partial<{ time: string; completed: boolean }>) => void;
 }) {
   const total = average(
     marathonDistances.map((distance) => {
-      const km = Number((state.marathon[distance.id]?.km ?? '').replace(',', '.')) || 0;
-      return Math.min(100, Math.round((km / distance.distance) * 100));
+      const progress = state.marathon[distance.id];
+      const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
+      return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
     }),
   );
 
@@ -352,33 +357,46 @@ function MarathonPage({
       </SectionHeader>
       <div className={styles.distanceGrid}>
         {marathonDistances.map((distance) => {
-          const value = state.marathon[distance.id] ?? { km: '', time: '' };
-          const km = Number(value.km.replace(',', '.')) || 0;
-          const percent = Math.min(100, Math.round((km / distance.distance) * 100));
-          const pace = value.time && km ? `${(parseMetric(value.time, 'lowerTime') / 60 / km).toFixed(2)} мин/км` : 'нет темпа';
+          const value = state.marathon[distance.id] ?? { time: '', completed: false };
+          const legacyKm = Number((value.km ?? '').replace(',', '.')) || 0;
+          const completed = Boolean(value.completed || legacyKm >= distance.distance);
+          const percent = completed ? 100 : 0;
+          const pace =
+            completed && value.time
+              ? `${(parseMetric(value.time, 'lowerTime') / 60 / distance.distance).toFixed(2)} мин/км`
+              : 'нет темпа';
           return (
             <motion.article className={styles.distanceCard} key={distance.id} whileHover={{ y: -5 }}>
               <div className={styles.distanceTop}>
                 <div>
                   <span>Дистанция</span>
-                  <h2>{distance.title}</h2>
+                  <h2>
+                    {Math.round(distance.distance)}
+                    <small>км</small>
+                  </h2>
                 </div>
                 <ProgressRing value={percent} color={distance.accent} />
               </div>
               <label>
-                Км без остановки
-                <input value={value.km} onChange={(event) => setMarathon(distance.id, 'km', event.target.value)} />
+                Статус дистанции
+                <button
+                  type="button"
+                  className={`${styles.runToggle} ${completed ? styles.runToggleActive : ''}`}
+                  onClick={() => setMarathon(distance.id, { completed: !completed })}
+                >
+                  {completed ? 'Пробежал' : 'Еще не пробежал'}
+                </button>
               </label>
               <label>
                 Время тренировки
                 <input
                   placeholder="например 54:30"
                   value={value.time}
-                  onChange={(event) => setMarathon(distance.id, 'time', event.target.value)}
+                  onChange={(event) => setMarathon(distance.id, { time: event.target.value })}
                 />
               </label>
               <div className={styles.paceLine}>
-                <span>{Math.min(km, distance.distance).toFixed(1)} / {distance.distance} км</span>
+                <span>{completed ? `${distance.distance} км закрыто` : `цель ${distance.distance} км`}</span>
                 <strong>{pace}</strong>
               </div>
             </motion.article>
@@ -438,7 +456,7 @@ function CoursePage({
               transition={{ type: 'spring', stiffness: 260, damping: 22 }}
             >
               <div className={styles.courseTop}>
-                <div className={styles.moduleNumber}>{String(index).padStart(2, '0')}</div>
+                <div className={styles.moduleNumber}>{String(index + 1).padStart(2, '0')}</div>
                 <ProgressRing value={percent} size={84} stroke={8} color="#df5b7d" />
               </div>
               <h2>{module.title}</h2>

@@ -276,11 +276,6 @@ export const taskStages: TaskStage[] = [
 
 export const courseModules: CourseModule[] = [
   {
-    id: 'course-0',
-    title: '[2 поток] 0.1. Введение',
-    sections: ['Старт курса', 'Как проходить поток', 'Обзор проекта', 'Рабочее окружение'],
-  },
-  {
     id: 'course-1',
     title: '1. Webpack. Введение в архитектуру',
     sections: [

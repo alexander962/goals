@@ -13,9 +13,11 @@ import {
   Home,
   Medal,
   PartyPopper,
+  Plus,
   Route,
   Save,
   Sparkles,
+  TrendingUp,
   Trophy,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -53,12 +55,16 @@ import {
   theoryItemPercent,
   theoryStagePercent,
   theoryTotalPercent,
+  workoutExercisePercent,
+  workoutLastByDay,
+  workoutTotalPercent,
 } from './lib/progress';
 import styles from './page.module.scss';
 
 type DashboardStats = {
   gto: number;
   marathon: number;
+  workout: number;
   theory: number;
   tasks: number;
   interview: number;
@@ -66,7 +72,7 @@ type DashboardStats = {
   total: number;
 };
 
-type Page = 'dashboard' | 'gto' | 'marathon' | 'interview' | 'course';
+type Page = 'dashboard' | 'gto' | 'marathon' | 'workout' | 'interview' | 'course';
 
 const storageKey = 'goals-progress-state-v1';
 
@@ -74,9 +80,22 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'gto', label: 'ГТО', icon: Medal },
   { id: 'marathon', label: 'Марафон', icon: Route },
+  { id: 'workout', label: 'Воркаут', icon: Dumbbell },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
 ];
+
+const workoutExercises = [
+  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', color: '#18a999' },
+  { id: 'dips', title: 'Брусья', target: 50, unit: 'раз', color: '#f28c38' },
+] as const;
+
+const workoutTargets = workoutExercises.reduce<Record<string, number>>((acc, exercise) => {
+  acc[exercise.id] = exercise.target;
+  return acc;
+}, {});
+
+const gtoGoalIds = ['gto-gold', 'gto-silver', 'gto-bronze'];
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -90,10 +109,18 @@ const taskOptions = [
   { value: 'cannot', label: 'Не могу' },
 ] satisfies { value: TaskStatus; label: string }[];
 
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 const dashboardGoals = [
   { id: 'gto-bronze', title: 'Получить бронзовый значок ГТО', source: 'gto-bronze' },
   { id: 'gto-silver', title: 'Получить серебряный значок ГТО', source: 'gto-silver' },
   { id: 'gto-gold', title: 'Получить золотой значок ГТО', source: 'gto-gold' },
+  { id: 'workout-master', title: 'Сделать 40 подтягиваний и 50 раз на брусьях', source: 'workout' },
   { id: 'run-10-official', title: 'Пробежать официально 10 км', source: 'run-10' },
   { id: 'run-half', title: 'Пробежать полумарафон', source: 'run-21' },
   { id: 'run-marathon', title: 'Пробежать марафон', source: 'run-42' },
@@ -108,7 +135,10 @@ export default function HomePage() {
 
   useEffect(() => {
     const raw = window.localStorage.getItem(storageKey);
-    if (raw) setState({ ...emptyState, ...JSON.parse(raw) });
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<AppState>;
+      setState({ ...emptyState, ...parsed, workout: parsed.workout ?? {} });
+    }
     setHydrated(true);
   }, []);
 
@@ -118,6 +148,7 @@ export default function HomePage() {
 
   const stats = useMemo(() => {
     const gto = gtoTotalPercent(gtoNorms, state.gto);
+    const workout = workoutTotalPercent(state.workout, workoutTargets);
     const marathon = average(
       marathonDistances.map((distance) => {
         const progress = state.marathon[distance.id];
@@ -129,7 +160,7 @@ export default function HomePage() {
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
     const course = courseTotalPercent(courseModules, state);
-    return { gto, marathon, theory, tasks, interview, course, total: average([gto, marathon, interview, course]) };
+    return { gto, marathon, workout, theory, tasks, interview, course, total: average([gto, marathon, workout, interview, course]) };
   }, [state]);
 
   const setGto = (id: string, value: string) => {
@@ -142,6 +173,18 @@ export default function HomePage() {
       marathon: {
         ...current.marathon,
         [id]: { ...({ time: '' } satisfies { time: string }), ...current.marathon[id], ...patch },
+      },
+    }));
+  };
+
+  const addWorkoutEntry = (id: string, value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return;
+    const date = getLocalDateKey();
+    setState((current) => ({
+      ...current,
+      workout: {
+        ...current.workout,
+        [id]: [...(current.workout[id] ?? []), { date, value: Math.round(value) }],
       },
     }));
   };
@@ -170,7 +213,15 @@ export default function HomePage() {
   };
 
   const setDashboardGoal = (id: string, checked: boolean) => {
-    setState((current) => ({ ...current, completedGoals: { ...current.completedGoals, [id]: checked } }));
+    setState((current) => {
+      const completedGoals = { ...current.completedGoals, [id]: checked };
+      if (checked && gtoGoalIds.includes(id)) {
+        gtoGoalIds.filter((goalId) => goalId !== id).forEach((goalId) => {
+          completedGoals[goalId] = false;
+        });
+      }
+      return { ...current, completedGoals };
+    });
   };
 
   return (
@@ -209,6 +260,7 @@ export default function HomePage() {
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
         {page === 'gto' && <GtoPage state={state} setGto={setGto} />}
         {page === 'marathon' && <MarathonPage state={state} setMarathon={setMarathon} />}
+        {page === 'workout' && <WorkoutPage state={state} stats={stats} addWorkoutEntry={addWorkoutEntry} />}
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
         {page === 'interview' && (
           <InterviewPage
@@ -235,6 +287,7 @@ function getRunReadiness(state: AppState, distanceId: string) {
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats, state: AppState) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
+  if (source === 'workout') return stats.workout;
   if (source === 'run-10' || source === 'run-21' || source === 'run-42') return getRunReadiness(state, source);
 
   const badge = source.replace('gto-', '') as Badge;
@@ -259,17 +312,27 @@ function Dashboard({
   const cards = [
     { label: 'ГТО', value: stats.gto, color: '#c99a43', icon: Dumbbell },
     { label: 'Марафон', value: stats.marathon, color: '#18a999', icon: Activity },
+    { label: 'Воркаут', value: stats.workout, color: '#f28c38', icon: Dumbbell },
     { label: 'Теория', value: stats.theory, color: '#6d7dfc', icon: Brain },
     { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
-  ];
+  ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
+  const checkedGtoGoal = gtoGoalIds.find((id) => state.completedGoals[id]);
   const goals = dashboardGoals
     .map((goal) => ({
       ...goal,
       completed: Boolean(state.completedGoals[goal.id]),
       readiness: getGoalReadiness(goal.source, stats, state),
     }))
-    .sort((a, b) => Number(a.completed) - Number(b.completed) || b.readiness - a.readiness);
+    .map((goal) => ({
+      ...goal,
+      locked: Boolean(checkedGtoGoal && goal.id.startsWith('gto-') && goal.id !== checkedGtoGoal),
+    }))
+    .sort((a, b) => {
+      const aRank = a.locked ? 2 : a.completed ? 1 : 0;
+      const bRank = b.locked ? 2 : b.completed ? 1 : 0;
+      return aRank - bRank || b.readiness - a.readiness;
+    });
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
@@ -285,7 +348,7 @@ function Dashboard({
           const Icon = card.icon;
           return (
             <motion.article
-              className={styles.statCard}
+              className={`${styles.statCard} ${card.value >= 100 ? styles.statComplete : ''}`}
               key={card.label}
               whileHover={{ y: -4 }}
               transition={{ type: 'spring', stiffness: 260, damping: 22 }}
@@ -309,13 +372,14 @@ function Dashboard({
             return (
               <motion.article
                 layout
-                className={`${styles.goalRow} ${meta.className} ${goal.completed ? styles.goalDone : ''}`}
+                className={`${styles.goalRow} ${meta.className} ${goal.completed ? styles.goalDone : ''} ${goal.locked ? styles.goalLocked : ''}`}
                 key={goal.id}
               >
                 <label className={styles.goalCheck}>
                   <input
                     type="checkbox"
                     checked={goal.completed}
+                    disabled={goal.locked}
                     onChange={(event) => setDashboardGoal(goal.id, event.target.checked)}
                   />
                   <span>
@@ -324,7 +388,12 @@ function Dashboard({
                 </label>
                 <div className={styles.goalText}>
                   <strong>{goal.title}</strong>
-                  {!goal.completed ? (
+                  {goal.locked ? (
+                    <small>
+                      <Medal size={15} />
+                      недоступно
+                    </small>
+                  ) : !goal.completed ? (
                     <small>
                       <Icon size={15} />
                       {meta.label}
@@ -347,6 +416,101 @@ function Dashboard({
           })}
         </div>
       </section>
+    </motion.div>
+  );
+}
+
+function WorkoutPage({
+  state,
+  stats,
+  addWorkoutEntry,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  addWorkoutEntry: (id: string, value: number) => void;
+}) {
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Силовая база"
+        title="Воркаут"
+        description="Записывай подход по подтягиваниям и брусьям. Если в один день есть несколько записей, в график попадет последняя запись дня."
+      >
+        <ProgressRing value={stats.workout} size={154} color="#f28c38" label="воркаут" />
+      </SectionHeader>
+      <div className={styles.workoutGrid}>
+        {workoutExercises.map((exercise) => {
+          const entries = state.workout[exercise.id] ?? [];
+          const lastByDay = workoutLastByDay(entries);
+          const days = Object.entries(lastByDay).sort(([a], [b]) => a.localeCompare(b));
+          const current = days.at(-1)?.[1] ?? 0;
+          const percent = workoutExercisePercent(entries, exercise.target);
+          const draft = drafts[exercise.id] ?? '';
+
+          return (
+            <motion.article className={styles.workoutCard} key={exercise.id} whileHover={{ y: -4 }}>
+              <div className={styles.workoutTop}>
+                <div>
+                  <span>Цель {exercise.target}+</span>
+                  <h2>{exercise.title}</h2>
+                </div>
+                <ProgressRing value={percent} size={92} stroke={9} color={exercise.color} />
+              </div>
+              <form
+                className={styles.workoutForm}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  addWorkoutEntry(exercise.id, Number(draft));
+                  setDrafts((current) => ({ ...current, [exercise.id]: '' }));
+                }}
+              >
+                <label>
+                  Количество
+                  <input
+                    type="number"
+                    min="1"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={draft}
+                    onChange={(event) => setDrafts((current) => ({ ...current, [exercise.id]: event.target.value }))}
+                  />
+                </label>
+                <button type="submit" aria-label={`Добавить ${exercise.title}`}>
+                  <Plus size={18} />
+                </button>
+              </form>
+              <div className={styles.workoutSummary}>
+                <div>
+                  <strong>{current}</strong>
+                  <span>текущий результат</span>
+                </div>
+                <div>
+                  <strong>{days.length}</strong>
+                  <span>дней с записями</span>
+                </div>
+              </div>
+              <div className={styles.workoutChart} aria-label={`График ${exercise.title}`}>
+                {days.length ? (
+                  days.map(([date, value]) => (
+                    <div className={styles.workoutBar} key={date}>
+                      <span>{value}</span>
+                      <div style={{ height: `${Math.max(8, Math.min(100, (value / exercise.target) * 100))}%`, background: exercise.color }} />
+                      <small>{new Date(`${date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</small>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyChart}>
+                    <TrendingUp size={24} />
+                    <span>Нет записей</span>
+                  </div>
+                )}
+              </div>
+            </motion.article>
+          );
+        })}
+      </div>
     </motion.div>
   );
 }

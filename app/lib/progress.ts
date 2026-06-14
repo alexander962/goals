@@ -12,6 +12,7 @@ export type CounterValue = {
 export type AppState = {
   gto: Record<string, string>;
   marathon: Record<string, { km?: string; time: string; completed?: boolean }>;
+  workout: Record<string, { date: string; value: number }[]>;
   theoryCounters: Record<string, CounterValue>;
   theoryStatus: Record<string, Confidence>;
   taskStatus: Record<string, TaskStatus>;
@@ -22,6 +23,7 @@ export type AppState = {
 export const emptyState: AppState = {
   gto: {},
   marathon: {},
+  workout: {},
   theoryCounters: {},
   theoryStatus: {},
   taskStatus: {},
@@ -140,6 +142,29 @@ export function average(values: number[]) {
   const filled = values.filter((value) => Number.isFinite(value));
   if (!filled.length) return 0;
   return clampPercent(filled.reduce((sum, value) => sum + value, 0) / filled.length);
+}
+
+export function workoutLastByDay(entries: { date: string; value: number }[] = []) {
+  return entries.reduce<Record<string, number>>((acc, entry) => {
+    if (!entry.date || !Number.isFinite(entry.value)) return acc;
+    acc[entry.date] = entry.value;
+    return acc;
+  }, {});
+}
+
+export function workoutExercisePercent(
+  entries: { date: string; value: number }[] = [],
+  target: number,
+) {
+  const last = Object.values(workoutLastByDay(entries)).at(-1) ?? 0;
+  return clampPercent((last / target) * 100);
+}
+
+export function workoutTotalPercent(
+  workout: AppState['workout'] = {},
+  targets: Record<string, number>,
+) {
+  return average(Object.entries(targets).map(([id, target]) => workoutExercisePercent(workout[id], target)));
 }
 
 export function theoryItemPercent(stageItemId: string, mode: 'counter' | 'status', state: AppState) {

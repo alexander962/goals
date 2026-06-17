@@ -509,7 +509,12 @@ function WorkoutPage({
               </div>
               <div className={styles.workoutChart} aria-label={`График ${exercise.title}`}>
                 {days.length ? (
-                  <svg className={styles.workoutLineChart} viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img">
+                  <svg
+                    className={styles.workoutLineChart}
+                    style={{ width: `${chartWidth}px`, minWidth: '100%' }}
+                    viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                    role="img"
+                  >
                     {points.map((point) => (
                       <line
                         className={styles.workoutGridLine}

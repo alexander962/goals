@@ -703,54 +703,46 @@
 }
 
 .workoutChart {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
+  display: block;
   min-height: 220px;
-  padding: 16px 12px 10px;
   border: 1px solid rgba(18, 28, 39, 0.08);
   border-radius: 8px;
-  background:
-    linear-gradient(to top, rgba(18, 28, 39, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
-    rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.66);
   overflow-x: auto;
 }
 
-.workoutBar {
-  display: grid;
-  grid-template-rows: 22px 150px 22px;
-  align-items: flex-end;
-  justify-items: center;
-  gap: 6px;
-  min-width: 42px;
-  height: 194px;
+.workoutLineChart {
+  display: block;
+  width: max(100%, 420px);
+  min-height: 220px;
 }
 
-.workoutBar span {
-  color: #121c27;
-  font-size: 0.82rem;
+.workoutGridLine {
+  stroke: rgba(18, 28, 39, 0.07);
+  stroke-width: 2;
+}
+
+.workoutPointValue {
+  fill: #fff;
+  font-size: 0.7rem;
   font-weight: 950;
+  text-anchor: middle;
 }
 
-.workoutBar div {
-  width: 100%;
-  max-width: 34px;
-  border-radius: 7px 7px 3px 3px;
-  box-shadow: 0 10px 20px rgba(18, 28, 39, 0.12);
-}
-
-.workoutBar small {
-  color: #657282;
+.workoutPointDate {
+  fill: #657282;
   font-size: 0.72rem;
   font-weight: 850;
-  white-space: nowrap;
+  text-anchor: middle;
 }
 
 .emptyChart {
   display: grid;
   gap: 8px;
   width: 100%;
+  min-height: 220px;
   align-self: center;
+  align-content: center;
   justify-items: center;
   color: rgba(101, 114, 130, 0.74);
   font-size: 0.84rem;

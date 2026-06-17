@@ -448,6 +448,22 @@ function WorkoutPage({
           const best = Math.max(...days.map(([, value]) => value), 0);
           const percent = workoutExercisePercent(entries, exercise.target);
           const draft = drafts[exercise.id] ?? '';
+          const chartWidth = Math.max(420, days.length * 88);
+          const chartHeight = 220;
+          const chartTop = 28;
+          const chartBottom = 46;
+          const chartLeft = 34;
+          const chartRight = 28;
+          const chartMax = Math.max(exercise.target, best, 1);
+          const points = days.map(([date, value], index) => {
+            const x =
+              days.length === 1
+                ? chartWidth / 2
+                : chartLeft + (index / (days.length - 1)) * (chartWidth - chartLeft - chartRight);
+            const y = chartTop + (1 - Math.min(value, chartMax) / chartMax) * (chartHeight - chartTop - chartBottom);
+            return { date, value, x, y };
+          });
+          const linePoints = points.map((point) => `${point.x},${point.y}`).join(' ');
 
           return (
             <motion.article className={styles.workoutCard} key={exercise.id} whileHover={{ y: -4 }}>
@@ -493,13 +509,37 @@ function WorkoutPage({
               </div>
               <div className={styles.workoutChart} aria-label={`График ${exercise.title}`}>
                 {days.length ? (
-                  days.map(([date, value]) => (
-                    <div className={styles.workoutBar} key={date}>
-                      <span>{value}</span>
-                      <div style={{ height: `${Math.max(8, Math.min(100, (value / exercise.target) * 100))}%`, background: exercise.color }} />
-                      <small>{new Date(`${date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}</small>
-                    </div>
-                  ))
+                  <svg className={styles.workoutLineChart} viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img">
+                    {points.map((point) => (
+                      <line
+                        className={styles.workoutGridLine}
+                        key={`grid-${point.date}`}
+                        x1={point.x}
+                        x2={point.x}
+                        y1={16}
+                        y2={chartHeight - 24}
+                      />
+                    ))}
+                    <polyline
+                      points={linePoints}
+                      fill="none"
+                      stroke={exercise.color}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="3"
+                    />
+                    {points.map((point) => (
+                      <g key={point.date}>
+                        <circle cx={point.x} cy={point.y} r="12" fill={exercise.color} />
+                        <text className={styles.workoutPointValue} x={point.x} y={point.y + 4}>
+                          {point.value}
+                        </text>
+                        <text className={styles.workoutPointDate} x={point.x} y={chartHeight - 8}>
+                          {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
                 ) : (
                   <div className={styles.emptyChart}>
                     <TrendingUp size={24} />

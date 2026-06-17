@@ -445,7 +445,7 @@ function WorkoutPage({
           const entries = state.workout[exercise.id] ?? [];
           const lastByDay = workoutLastByDay(entries);
           const days = Object.entries(lastByDay).sort(([a], [b]) => a.localeCompare(b));
-          const current = days.at(-1)?.[1] ?? 0;
+          const best = Math.max(...days.map(([, value]) => value), 0);
           const percent = workoutExercisePercent(entries, exercise.target);
           const draft = drafts[exercise.id] ?? '';
 
@@ -483,8 +483,8 @@ function WorkoutPage({
               </form>
               <div className={styles.workoutSummary}>
                 <div>
-                  <strong>{current}</strong>
-                  <span>текущий результат</span>
+                  <strong>{best}</strong>
+                  <span>лучший результат</span>
                 </div>
                 <div>
                   <strong>{days.length}</strong>

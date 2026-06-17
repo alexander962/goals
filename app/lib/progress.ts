@@ -156,8 +156,8 @@ export function workoutExercisePercent(
   entries: { date: string; value: number }[] = [],
   target: number,
 ) {
-  const last = Object.values(workoutLastByDay(entries)).at(-1) ?? 0;
-  return clampPercent((last / target) * 100);
+  const best = Math.max(...Object.values(workoutLastByDay(entries)), 0);
+  return clampPercent((best / target) * 100);
 }
 
 export function workoutTotalPercent(

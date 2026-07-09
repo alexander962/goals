@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import type { ElementType } from 'react';
 import {
-  Activity,
   BookOpen,
   Brain,
   CheckCircle2,
@@ -11,13 +10,13 @@ import {
   Flame,
   Gauge,
   Home,
-  Medal,
   PartyPopper,
+  Pizza,
   Plus,
-  Route,
   Save,
+  Scale,
   Sparkles,
-  TrendingUp,
+  Timer,
   Trophy,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,11 +24,7 @@ import { ProgressRing } from './components/ProgressRing';
 import { SectionHeader } from './components/SectionHeader';
 import { SegmentedControl } from './components/SegmentedControl';
 import {
-  Badge,
-  badgeLabels,
   courseModules,
-  gtoNorms,
-  marathonDistances,
   taskStages,
   theoryStages,
 } from './data/progress';
@@ -43,59 +38,55 @@ import {
   courseModulePercent,
   courseTotalPercent,
   emptyState,
-  formatNorm,
-  gtoBadgePercent,
-  gtoCategoryPercent,
-  gtoMedalReadiness,
-  gtoTotalPercent,
-  groupGtoNorms,
-  parseMetric,
+  lastEntryByDay,
   taskStagePercent,
   taskTotalPercent,
   theoryItemPercent,
   theoryStagePercent,
   theoryTotalPercent,
-  workoutExercisePercent,
-  workoutLastByDay,
-  workoutTotalPercent,
+  weightProgressPercent,
 } from './lib/progress';
 import styles from './page.module.scss';
 
 type DashboardStats = {
-  gto: number;
-  marathon: number;
-  workout: number;
   theory: number;
   tasks: number;
   interview: number;
   course: number;
+  nextPizza: number;
+  weight: number;
+  sport: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'gto' | 'marathon' | 'workout' | 'interview' | 'course';
+type Page = 'dashboard' | 'interview' | 'course' | 'nextPizza' | 'weight' | 'sport';
 
 const storageKey = 'goals-progress-state-v1';
 
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
-  { id: 'gto', label: 'ГТО', icon: Medal },
-  { id: 'marathon', label: 'Марафон', icon: Route },
-  { id: 'workout', label: 'Воркаут', icon: Dumbbell },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
+  { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
+  { id: 'weight', label: 'Контроль веса', icon: Scale },
+  { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
 
-const workoutExercises = [
-  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', color: '#18a999' },
-  { id: 'dips', title: 'Брусья', target: 50, unit: 'раз', color: '#f28c38' },
+const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
+const nextPizzaStepMinutes = 30;
+const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / nextPizzaStepMinutes) }, (_, index) => {
+  const start = index * nextPizzaStepMinutes;
+  const end = Math.min(start + nextPizzaStepMinutes, nextPizzaVideoMinutes);
+  return { id: `next-pizza:${index + 1}`, index: index + 1, start, end };
+});
+const weightTarget = 80;
+const sportNorms = [
+  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
+  { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
+  { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
+  { id: 'run-10-laps', title: 'Бег 10 кругов', target: 22, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ] as const;
-
-const workoutTargets = workoutExercises.reduce<Record<string, number>>((acc, exercise) => {
-  acc[exercise.id] = exercise.target;
-  return acc;
-}, {});
-
-const gtoGoalIds = ['gto-gold', 'gto-silver', 'gto-bronze'];
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -109,6 +100,14 @@ const taskOptions = [
   { value: 'cannot', label: 'Не могу' },
 ] satisfies { value: TaskStatus; label: string }[];
 
+const dashboardGoals = [
+  { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
+  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
+  { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
+  { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
+  { id: 'sport-norms', title: 'Выполнить все запланированные спортивные нормативы', source: 'sport' },
+] as const;
+
 function getLocalDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -116,17 +115,52 @@ function getLocalDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-const dashboardGoals = [
-  { id: 'gto-bronze', title: 'Получить бронзовый значок ГТО', source: 'gto-bronze' },
-  { id: 'gto-silver', title: 'Получить серебряный значок ГТО', source: 'gto-silver' },
-  { id: 'gto-gold', title: 'Получить золотой значок ГТО', source: 'gto-gold' },
-  { id: 'workout-master', title: 'Сделать 40 подтягиваний и 50 раз на брусьях', source: 'workout' },
-  { id: 'run-10-official', title: 'Пробежать официально 10 км', source: 'run-10' },
-  { id: 'run-half', title: 'Пробежать полумарафон', source: 'run-21' },
-  { id: 'run-marathon', title: 'Пробежать марафон', source: 'run-42' },
-  { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
-  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
-] as const;
+function formatVideoTime(minutesValue: number) {
+  const totalSeconds = Math.round(minutesValue * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+}
+
+function nextPizzaPercent(state: AppState) {
+  const completed = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
+  return Math.round((completed / nextPizzaSteps.length) * 100);
+}
+
+function parseSportInput(value: string, kind: (typeof sportNorms)[number]['kind']) {
+  const normalized = value.trim().replace(',', '.');
+  if (!normalized) return 0;
+  if (kind === 'lower' && normalized.includes(':')) {
+    const [minutes, seconds = '0'] = normalized.split(':');
+    return Number(minutes) + Number(seconds) / 60;
+  }
+  return Number(normalized) || 0;
+}
+
+function formatSportValue(value: number, norm: (typeof sportNorms)[number]) {
+  if (!value) return '-';
+  if (norm.kind === 'lower') {
+    const totalSeconds = Math.round(value * 60);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+  return String(Math.round(value));
+}
+
+function sportMetricPercent(entries: { date: string; value: number }[] = [], norm: (typeof sportNorms)[number]) {
+  const values = Object.values(lastEntryByDay(entries)).filter((value) => value > 0);
+  if (!values.length) return 0;
+  const best = norm.kind === 'higher' ? Math.max(...values) : Math.min(...values);
+  return norm.kind === 'higher'
+    ? Math.min(100, Math.round((best / norm.target) * 100))
+    : Math.min(100, Math.round((norm.target / best) * 100));
+}
+
+function sportTotalPercent(state: AppState) {
+  return average(sportNorms.map((norm) => sportMetricPercent(state.sportEntries[norm.id], norm)));
+}
 
 export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
@@ -137,7 +171,7 @@ export default function HomePage() {
     const raw = window.localStorage.getItem(storageKey);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<AppState>;
-      setState({ ...emptyState, ...parsed, workout: parsed.workout ?? {} });
+      setState({ ...emptyState, ...parsed });
     }
     setHydrated(true);
   }, []);
@@ -147,47 +181,15 @@ export default function HomePage() {
   }, [hydrated, state]);
 
   const stats = useMemo(() => {
-    const gto = gtoTotalPercent(gtoNorms, state.gto);
-    const workout = workoutTotalPercent(state.workout, workoutTargets);
-    const marathon = average(
-      marathonDistances.map((distance) => {
-        const progress = state.marathon[distance.id];
-        const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
-        return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
-      }),
-    );
     const theory = theoryTotalPercent(theoryStages, state);
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
     const course = courseTotalPercent(courseModules, state);
-    return { gto, marathon, workout, theory, tasks, interview, course, total: average([gto, marathon, workout, interview, course]) };
+    const nextPizza = nextPizzaPercent(state);
+    const weight = weightProgressPercent(state.weightEntries, weightTarget);
+    const sport = sportTotalPercent(state);
+    return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
   }, [state]);
-
-  const setGto = (id: string, value: string) => {
-    setState((current) => ({ ...current, gto: { ...current.gto, [id]: value } }));
-  };
-
-  const setMarathon = (id: string, patch: Partial<{ time: string; completed: boolean }>) => {
-    setState((current) => ({
-      ...current,
-      marathon: {
-        ...current.marathon,
-        [id]: { ...({ time: '' } satisfies { time: string }), ...current.marathon[id], ...patch },
-      },
-    }));
-  };
-
-  const addWorkoutEntry = (id: string, value: number) => {
-    if (!Number.isFinite(value) || value <= 0) return;
-    const date = getLocalDateKey();
-    setState((current) => ({
-      ...current,
-      workout: {
-        ...current.workout,
-        [id]: [...(current.workout[id] ?? []), { date, value: Math.round(value) }],
-      },
-    }));
-  };
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
     const numberValue = Math.max(0, Number(value) || 0);
@@ -212,16 +214,31 @@ export default function HomePage() {
     setState((current) => ({ ...current, courseCompleted: { ...current.courseCompleted, [id]: checked } }));
   };
 
+  const setNextPizzaStep = (id: string, checked: boolean) => {
+    setState((current) => ({ ...current, nextPizzaCompleted: { ...current.nextPizzaCompleted, [id]: checked } }));
+  };
+
+  const addWeightEntry = (value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return;
+    setState((current) => ({
+      ...current,
+      weightEntries: [...current.weightEntries, { date: getLocalDateKey(), value: Number(value.toFixed(1)) }],
+    }));
+  };
+
+  const addSportEntry = (id: string, value: number) => {
+    if (!Number.isFinite(value) || value <= 0) return;
+    setState((current) => ({
+      ...current,
+      sportEntries: {
+        ...current.sportEntries,
+        [id]: [...(current.sportEntries[id] ?? []), { date: getLocalDateKey(), value: Number(value.toFixed(2)) }],
+      },
+    }));
+  };
+
   const setDashboardGoal = (id: string, checked: boolean) => {
-    setState((current) => {
-      const completedGoals = { ...current.completedGoals, [id]: checked };
-      if (checked && gtoGoalIds.includes(id)) {
-        gtoGoalIds.filter((goalId) => goalId !== id).forEach((goalId) => {
-          completedGoals[goalId] = false;
-        });
-      }
-      return { ...current, completedGoals };
-    });
+    setState((current) => ({ ...current, completedGoals: { ...current.completedGoals, [id]: checked } }));
   };
 
   return (
@@ -258,10 +275,10 @@ export default function HomePage() {
 
       <section className={styles.content}>
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
-        {page === 'gto' && <GtoPage state={state} setGto={setGto} />}
-        {page === 'marathon' && <MarathonPage state={state} setMarathon={setMarathon} />}
-        {page === 'workout' && <WorkoutPage state={state} stats={stats} addWorkoutEntry={addWorkoutEntry} />}
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
+        {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
+        {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
+        {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -276,22 +293,13 @@ export default function HomePage() {
   );
 }
 
-function getRunReadiness(state: AppState, distanceId: string) {
-  const distance = marathonDistances.find((item) => item.id === distanceId);
-  if (!distance) return 0;
-  const progress = state.marathon[distance.id];
-  const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
-  return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
-}
-
-function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats, state: AppState) {
+function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
-  if (source === 'workout') return stats.workout;
-  if (source === 'run-10' || source === 'run-21' || source === 'run-42') return getRunReadiness(state, source);
-
-  const badge = source.replace('gto-', '') as Badge;
-  return gtoMedalReadiness(gtoNorms, state.gto).find((item) => item.badge === badge)?.percent ?? 0;
+  if (source === 'nextPizza') return stats.nextPizza;
+  if (source === 'weight') return stats.weight;
+  if (source === 'sport') return stats.sport;
+  return 0;
 }
 
 function getReadinessMeta(value: number) {
@@ -310,27 +318,22 @@ function Dashboard({
   setDashboardGoal: (id: string, checked: boolean) => void;
 }) {
   const cards = [
-    { label: 'ГТО', value: stats.gto, color: '#c99a43', icon: Dumbbell },
-    { label: 'Марафон', value: stats.marathon, color: '#18a999', icon: Activity },
-    { label: 'Воркаут', value: stats.workout, color: '#f28c38', icon: Dumbbell },
     { label: 'Теория', value: stats.theory, color: '#6d7dfc', icon: Brain },
     { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
+    { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
+    { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
+    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
-  const checkedGtoGoal = gtoGoalIds.find((id) => state.completedGoals[id]);
   const goals = dashboardGoals
     .map((goal) => ({
       ...goal,
       completed: Boolean(state.completedGoals[goal.id]),
-      readiness: getGoalReadiness(goal.source, stats, state),
-    }))
-    .map((goal) => ({
-      ...goal,
-      locked: Boolean(checkedGtoGoal && goal.id.startsWith('gto-') && goal.id !== checkedGtoGoal),
+      readiness: getGoalReadiness(goal.source, stats),
     }))
     .sort((a, b) => {
-      const aRank = a.locked ? 2 : a.completed ? 1 : 0;
-      const bRank = b.locked ? 2 : b.completed ? 1 : 0;
+      const aRank = a.completed ? 1 : 0;
+      const bRank = b.completed ? 1 : 0;
       return aRank - bRank || b.readiness - a.readiness;
     });
 
@@ -339,7 +342,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по ГТО, бегу и подготовке к интервью. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию и прохождению курса. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -372,14 +375,13 @@ function Dashboard({
             return (
               <motion.article
                 layout
-                className={`${styles.goalRow} ${meta.className} ${goal.completed ? styles.goalDone : ''} ${goal.locked ? styles.goalLocked : ''}`}
+                className={`${styles.goalRow} ${meta.className} ${goal.completed ? styles.goalDone : ''}`}
                 key={goal.id}
               >
                 <label className={styles.goalCheck}>
                   <input
                     type="checkbox"
                     checked={goal.completed}
-                    disabled={goal.locked}
                     onChange={(event) => setDashboardGoal(goal.id, event.target.checked)}
                   />
                   <span>
@@ -388,12 +390,7 @@ function Dashboard({
                 </label>
                 <div className={styles.goalText}>
                   <strong>{goal.title}</strong>
-                  {goal.locked ? (
-                    <small>
-                      <Medal size={15} />
-                      недоступно
-                    </small>
-                  ) : !goal.completed ? (
+                  {!goal.completed ? (
                     <small>
                       <Icon size={15} />
                       {meta.label}
@@ -416,320 +413,6 @@ function Dashboard({
           })}
         </div>
       </section>
-    </motion.div>
-  );
-}
-
-function WorkoutPage({
-  state,
-  stats,
-  addWorkoutEntry,
-}: {
-  state: AppState;
-  stats: DashboardStats;
-  addWorkoutEntry: (id: string, value: number) => void;
-}) {
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-      <SectionHeader
-        eyebrow="Силовая база"
-        title="Воркаут"
-        description="Записывай подход по подтягиваниям и брусьям. Если в один день есть несколько записей, в график попадет последняя запись дня."
-      >
-        <ProgressRing value={stats.workout} size={154} color="#f28c38" label="воркаут" />
-      </SectionHeader>
-      <div className={styles.workoutGrid}>
-        {workoutExercises.map((exercise) => {
-          const entries = state.workout[exercise.id] ?? [];
-          const lastByDay = workoutLastByDay(entries);
-          const days = Object.entries(lastByDay).sort(([a], [b]) => a.localeCompare(b));
-          const best = Math.max(...days.map(([, value]) => value), 0);
-          const percent = workoutExercisePercent(entries, exercise.target);
-          const draft = drafts[exercise.id] ?? '';
-          const chartWidth = Math.max(420, days.length * 88);
-          const chartHeight = 220;
-          const chartTop = 28;
-          const chartBottom = 46;
-          const chartLeft = 34;
-          const chartRight = 28;
-          const chartMax = Math.max(exercise.target, best, 1);
-          const points = days.map(([date, value], index) => {
-            const x =
-              days.length === 1
-                ? chartWidth / 2
-                : chartLeft + (index / (days.length - 1)) * (chartWidth - chartLeft - chartRight);
-            const y = chartTop + (1 - Math.min(value, chartMax) / chartMax) * (chartHeight - chartTop - chartBottom);
-            return { date, value, x, y };
-          });
-          const linePoints = points.map((point) => `${point.x},${point.y}`).join(' ');
-
-          return (
-            <motion.article className={styles.workoutCard} key={exercise.id} whileHover={{ y: -4 }}>
-              <div className={styles.workoutTop}>
-                <div>
-                  <span>Цель {exercise.target}+</span>
-                  <h2>{exercise.title}</h2>
-                </div>
-                <ProgressRing value={percent} size={92} stroke={9} color={exercise.color} />
-              </div>
-              <form
-                className={styles.workoutForm}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  addWorkoutEntry(exercise.id, Number(draft));
-                  setDrafts((current) => ({ ...current, [exercise.id]: '' }));
-                }}
-              >
-                <label>
-                  Количество
-                  <input
-                    type="number"
-                    min="1"
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={draft}
-                    onChange={(event) => setDrafts((current) => ({ ...current, [exercise.id]: event.target.value }))}
-                  />
-                </label>
-                <button type="submit" aria-label={`Добавить ${exercise.title}`}>
-                  <Plus size={18} />
-                </button>
-              </form>
-              <div className={styles.workoutSummary}>
-                <div>
-                  <strong>{best}</strong>
-                  <span>лучший результат</span>
-                </div>
-                <div>
-                  <strong>{days.length}</strong>
-                  <span>дней с записями</span>
-                </div>
-              </div>
-              <div className={styles.workoutChart} aria-label={`График ${exercise.title}`}>
-                {days.length ? (
-                  <svg
-                    className={styles.workoutLineChart}
-                    style={{ width: `${chartWidth}px`, minWidth: '100%' }}
-                    viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                    role="img"
-                  >
-                    {points.map((point) => (
-                      <line
-                        className={styles.workoutGridLine}
-                        key={`grid-${point.date}`}
-                        x1={point.x}
-                        x2={point.x}
-                        y1={16}
-                        y2={chartHeight - 24}
-                      />
-                    ))}
-                    <polyline
-                      points={linePoints}
-                      fill="none"
-                      stroke={exercise.color}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="3"
-                    />
-                    {points.map((point) => (
-                      <g key={point.date}>
-                        <circle cx={point.x} cy={point.y} r="12" fill={exercise.color} />
-                        <text className={styles.workoutPointValue} x={point.x} y={point.y + 4}>
-                          {point.value}
-                        </text>
-                        <text className={styles.workoutPointDate} x={point.x} y={chartHeight - 8}>
-                          {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
-                        </text>
-                      </g>
-                    ))}
-                  </svg>
-                ) : (
-                  <div className={styles.emptyChart}>
-                    <TrendingUp size={24} />
-                    <span>Нет записей</span>
-                  </div>
-                )}
-              </div>
-            </motion.article>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
-function GtoPage({ state, setGto }: { state: AppState; setGto: (id: string, value: string) => void }) {
-  const grouped = groupGtoNorms(gtoNorms);
-  const badges: Badge[] = ['gold', 'silver', 'bronze'];
-  const readiness = gtoMedalReadiness(gtoNorms, state.gto);
-  const total = gtoTotalPercent(gtoNorms, state.gto);
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-      <SectionHeader
-        eyebrow="10 ступень, 30-34 года"
-        title="Подготовка к ГТО"
-        description="Вводи текущий результат напротив норматива. Для времени можно писать 13:20, для остальных дисциплин обычное число."
-      >
-        <ProgressRing value={total} size={154} color="#c99a43" label="ГТО" />
-      </SectionHeader>
-      <div className={styles.stack}>
-        {Object.entries(grouped).map(([category, norms]) => (
-          <section className={styles.panel} key={category}>
-            <div className={styles.panelTitle}>
-              <h2>{category}</h2>
-              <span>{gtoCategoryPercent(norms ?? [], state.gto)}%</span>
-            </div>
-            <div className={styles.normList}>
-              {(norms ?? []).map((norm) => (
-                <article className={styles.normRow} key={norm.id}>
-                  <div>
-                    <h3>{norm.title}</h3>
-                    <span>{norm.unit}</span>
-                  </div>
-                  <input
-                    aria-label={norm.title}
-                    placeholder={norm.kind === 'lowerTime' ? 'например 12:30' : '0'}
-                    value={state.gto[norm.id] ?? ''}
-                    onChange={(event) => setGto(norm.id, event.target.value)}
-                  />
-                  <div className={styles.badges}>
-                    {badges.map((badge) => (
-                      <div className={styles.badge} key={badge}>
-                        <ProgressRing
-                          value={gtoBadgePercent(norm, badge, state.gto[norm.id] ?? '')}
-                          size={82}
-                          stroke={8}
-                          color={badge === 'gold' ? '#c99a43' : badge === 'silver' ? '#8c99a8' : '#b8755c'}
-                        />
-                        <span>
-                          {badgeLabels[badge]}: {formatNorm(norm.norms[badge], norm.kind)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        ))}
-        <section className={styles.panel}>
-          <div className={styles.panelTitle}>
-            <h2>Готовность к знакам</h2>
-            <span>{total}%</span>
-          </div>
-          <div className={styles.medalGrid}>
-            {readiness.map((item) => (
-              <article className={`${styles.medalCard} ${item.ready ? styles.medalReady : ''}`} key={item.badge}>
-                <div className={styles.medalHead}>
-                  <ProgressRing
-                    value={item.percent}
-                    size={104}
-                    stroke={10}
-                    color={item.badge === 'gold' ? '#c99a43' : item.badge === 'silver' ? '#8c99a8' : '#b8755c'}
-                  />
-                  <div>
-                    <span>{badgeLabels[item.badge]}</span>
-                    <strong>{item.ready ? 'Готов' : 'В процессе'}</strong>
-                  </div>
-                </div>
-                <div className={styles.requirements}>
-                  <div>
-                    <span>Физические качества, способности, прикладные навыки</span>
-                    <strong>
-                      {item.completedQualities} / {item.requirements.qualities}
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Испытания, которые нужно выполнить</span>
-                    <strong>
-                      {item.completedTests} / {item.requirements.tests}
-                    </strong>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      </div>
-    </motion.div>
-  );
-}
-
-function MarathonPage({
-  state,
-  setMarathon,
-}: {
-  state: AppState;
-  setMarathon: (id: string, patch: Partial<{ time: string; completed: boolean }>) => void;
-}) {
-  const total = average(
-    marathonDistances.map((distance) => {
-      const progress = state.marathon[distance.id];
-      const legacyKm = Number((progress?.km ?? '').replace(',', '.')) || 0;
-      return progress?.completed || legacyKm >= distance.distance ? 100 : 0;
-    }),
-  );
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-      <SectionHeader
-        eyebrow="Беговая форма"
-        title="Подготовка к марафону"
-        description="Отмечай максимальную дистанцию без остановки и время тренировки. Готовность считается от целевой дистанции."
-      >
-        <ProgressRing value={total} size={154} color="#18a999" label="бег" />
-      </SectionHeader>
-      <div className={styles.distanceGrid}>
-        {marathonDistances.map((distance) => {
-          const value = state.marathon[distance.id] ?? { time: '', completed: false };
-          const legacyKm = Number((value.km ?? '').replace(',', '.')) || 0;
-          const completed = Boolean(value.completed || legacyKm >= distance.distance);
-          const percent = completed ? 100 : 0;
-          const pace =
-            completed && value.time
-              ? `${(parseMetric(value.time, 'lowerTime') / 60 / distance.distance).toFixed(2)} мин/км`
-              : 'нет темпа';
-          return (
-            <motion.article className={styles.distanceCard} key={distance.id} whileHover={{ y: -5 }}>
-              <div className={styles.distanceTop}>
-                <div>
-                  <span>Дистанция</span>
-                  <h2>
-                    {Math.round(distance.distance)}
-                    <small>км</small>
-                  </h2>
-                </div>
-                <ProgressRing value={percent} color={distance.accent} />
-              </div>
-              <label>
-                Статус дистанции
-                <button
-                  type="button"
-                  className={`${styles.runToggle} ${completed ? styles.runToggleActive : ''}`}
-                  onClick={() => setMarathon(distance.id, { completed: !completed })}
-                >
-                  {completed ? 'Пробежал' : 'Еще не пробежал'}
-                </button>
-              </label>
-              <label>
-                Время тренировки
-                <input
-                  placeholder="например 54:30"
-                  value={value.time}
-                  onChange={(event) => setMarathon(distance.id, { time: event.target.value })}
-                />
-              </label>
-              <div className={styles.paceLine}>
-                <span>{completed ? `${distance.distance} км закрыто` : `цель ${distance.distance} км`}</span>
-                <strong>{pace}</strong>
-              </div>
-            </motion.article>
-          );
-        })}
-      </div>
     </motion.div>
   );
 }
@@ -805,6 +488,352 @@ function CoursePage({
                     </label>
                   );
                 })}
+              </div>
+            </motion.article>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function NextPizzaPage({
+  state,
+  stats,
+  setNextPizzaStep,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setNextPizzaStep: (id: string, checked: boolean) => void;
+}) {
+  const completedSteps = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
+  const completedMinutes = Math.min(completedSteps * nextPizzaStepMinutes, nextPizzaVideoMinutes);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Fullstack clone"
+        title="Приложение Next Pizza"
+        description="Отмечай каждый закрытый получасовой отрезок видео. Один шаг равен 30 минутам работы над клоном Додо Пиццы."
+      >
+        <ProgressRing value={stats.nextPizza} size={154} color="#f28c38" label="pizza" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedSteps}</strong>
+          <span>этапов закрыто</span>
+        </div>
+        <div>
+          <strong>{nextPizzaSteps.length}</strong>
+          <span>этапов всего</span>
+        </div>
+        <div>
+          <strong>{formatVideoTime(completedMinutes)}</strong>
+          <span>видео разобрано</span>
+        </div>
+      </div>
+      <section className={styles.panel}>
+        <div className={styles.panelTitle}>
+          <h2>Этапы видео</h2>
+          <span>{stats.nextPizza}%</span>
+        </div>
+        <div className={styles.pizzaGrid}>
+          {nextPizzaSteps.map((step) => {
+            const checked = Boolean(state.nextPizzaCompleted[step.id]);
+            return (
+              <label className={styles.pizzaStep} key={step.id}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(event) => setNextPizzaStep(step.id, event.target.checked)}
+                />
+                <span className={checked ? styles.pizzaStepDone : ''}>
+                  <CheckCircle2 size={18} />
+                  <strong>{String(step.index).padStart(2, '0')}</strong>
+                  <small>
+                    {formatVideoTime(step.start)} - {formatVideoTime(step.end)}
+                  </small>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </section>
+    </motion.div>
+  );
+}
+
+function WeightPage({
+  state,
+  stats,
+  addWeightEntry,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  addWeightEntry: (value: number) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const days = Object.entries(lastEntryByDay(state.weightEntries)).sort(([a], [b]) => a.localeCompare(b));
+  const current = days.at(-1)?.[1] ?? 0;
+  const previous = days.at(-2)?.[1];
+  const delta = previous === undefined ? 0 : current - previous;
+  const start = days[0]?.[1] ?? 0;
+  const chartWidth = Math.max(420, days.length * 88);
+  const chartHeight = 240;
+  const chartTop = 28;
+  const chartBottom = 48;
+  const chartLeft = 38;
+  const chartRight = 28;
+  const values = days.map(([, value]) => value);
+  const minValue = Math.min(weightTarget, ...values);
+  const maxValue = Math.max(weightTarget, ...values);
+  const chartMin = Math.max(0, minValue - 2);
+  const chartMax = maxValue + 2;
+  const chartRange = Math.max(1, chartMax - chartMin);
+  const points = days.map(([date, value], index) => {
+    const x =
+      days.length === 1
+        ? chartWidth / 2
+        : chartLeft + (index / (days.length - 1)) * (chartWidth - chartLeft - chartRight);
+    const y = chartTop + ((chartMax - value) / chartRange) * (chartHeight - chartTop - chartBottom);
+    return { date, value, x, y };
+  });
+  const linePoints = points.map((point) => `${point.x},${point.y}`).join(' ');
+  const targetY = chartTop + ((chartMax - weightTarget) / chartRange) * (chartHeight - chartTop - chartBottom);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Цель 80 кг"
+        title="Контроль веса"
+        description="Вноси замеры веса. Если в один день есть несколько значений, в график и расчет попадет последний замер дня."
+      >
+        <ProgressRing value={stats.weight} size={154} color="#18a999" label="вес" />
+      </SectionHeader>
+      <div className={styles.weightLayout}>
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>Замер</h2>
+            <span>{stats.weight}%</span>
+          </div>
+          <form
+            className={styles.weightForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              addWeightEntry(Number(draft.replace(',', '.')));
+              setDraft('');
+            }}
+          >
+            <label>
+              Вес, кг
+              <input
+                type="number"
+                min="1"
+                step="0.1"
+                inputMode="decimal"
+                placeholder="например 92.4"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+              />
+            </label>
+            <button type="submit" aria-label="Добавить вес">
+              <Plus size={18} />
+            </button>
+          </form>
+          <div className={styles.weightSummary}>
+            <div>
+              <strong>{current ? current.toFixed(1) : '-'}</strong>
+              <span>текущий вес</span>
+            </div>
+            <div>
+              <strong className={delta > 0 ? styles.weightRegression : delta < 0 ? styles.weightProgress : ''}>
+                {previous === undefined ? '-' : `${delta > 0 ? '+' : ''}${delta.toFixed(1)}`}
+              </strong>
+              <span>к прошлому</span>
+            </div>
+            <div>
+              <strong>{start ? start.toFixed(1) : '-'}</strong>
+              <span>старт</span>
+            </div>
+            <div>
+              <strong>{weightTarget}</strong>
+              <span>цель</span>
+            </div>
+          </div>
+        </section>
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>Динамика</h2>
+            <span>{days.length} дн.</span>
+          </div>
+          <div className={styles.weightChart} aria-label="График веса">
+            {days.length ? (
+              <svg
+                className={styles.weightLineChart}
+                style={{ width: `${chartWidth}px`, minWidth: '100%' }}
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                role="img"
+              >
+                {points.map((point) => (
+                  <line
+                    className={styles.weightGridLine}
+                    key={`grid-${point.date}`}
+                    x1={point.x}
+                    x2={point.x}
+                    y1={16}
+                    y2={chartHeight - 28}
+                  />
+                ))}
+                <line
+                  className={styles.weightTargetLine}
+                  x1={chartLeft}
+                  x2={chartWidth - chartRight}
+                  y1={targetY}
+                  y2={targetY}
+                />
+                <text className={styles.weightTargetText} x={chartLeft} y={targetY - 6}>
+                  цель {weightTarget} кг
+                </text>
+                <polyline
+                  points={linePoints}
+                  fill="none"
+                  stroke="#18a999"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                />
+                {points.map((point) => (
+                  <g key={point.date}>
+                    <circle cx={point.x} cy={point.y} r="12" fill="#18a999" />
+                    <text className={styles.weightPointValue} x={point.x} y={point.y + 4}>
+                      {point.value.toFixed(0)}
+                    </text>
+                    <text className={styles.weightPointDate} x={point.x} y={chartHeight - 10}>
+                      {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            ) : (
+              <div className={styles.emptyChart}>
+                <Scale size={24} />
+                <span>Нет замеров</span>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </motion.div>
+  );
+}
+
+function SportPage({
+  state,
+  stats,
+  addSportEntry,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  addSportEntry: (id: string, value: number) => void;
+}) {
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const completedNorms = sportNorms.filter((norm) => sportMetricPercent(state.sportEntries[norm.id], norm) >= 100).length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Нормативы"
+        title="Спорт"
+        description="Вноси общий результат сразу за 4 подхода. Для бега указывай время 10 кругов в минутах или формате 22:00."
+      >
+        <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedNorms}</strong>
+          <span>нормативов закрыто</span>
+        </div>
+        <div>
+          <strong>{sportNorms.length}</strong>
+          <span>нормативов всего</span>
+        </div>
+        <div>
+          <strong>{stats.sport}%</strong>
+          <span>общая готовность</span>
+        </div>
+      </div>
+      <div className={styles.sportGrid}>
+        {sportNorms.map((norm) => {
+          const entries = state.sportEntries[norm.id] ?? [];
+          const days = Object.entries(lastEntryByDay(entries)).sort(([a], [b]) => a.localeCompare(b));
+          const current = days.at(-1)?.[1] ?? 0;
+          const previous = days.at(-2)?.[1];
+          const best =
+            days.length === 0
+              ? 0
+              : norm.kind === 'higher'
+                ? Math.max(...days.map(([, value]) => value))
+                : Math.min(...days.map(([, value]) => value));
+          const rawDelta = previous === undefined ? 0 : current - previous;
+          const improved = previous !== undefined && (norm.kind === 'higher' ? rawDelta > 0 : rawDelta < 0);
+          const regressed = previous !== undefined && (norm.kind === 'higher' ? rawDelta < 0 : rawDelta > 0);
+          const percent = sportMetricPercent(entries, norm);
+          const draft = drafts[norm.id] ?? '';
+          const deltaText =
+            previous === undefined
+              ? '-'
+              : norm.kind === 'higher'
+                ? `${rawDelta > 0 ? '+' : ''}${Math.round(rawDelta)}`
+                : `${rawDelta > 0 ? '+' : rawDelta < 0 ? '-' : ''}${formatSportValue(Math.abs(rawDelta), norm)}`;
+
+          return (
+            <motion.article className={styles.sportCard} key={norm.id} whileHover={{ y: -4 }}>
+              <div className={styles.sportTop}>
+                <div>
+                  <span>
+                    Норма {formatSportValue(norm.target, norm)} {norm.unit}
+                  </span>
+                  <h2>{norm.title}</h2>
+                </div>
+                <ProgressRing value={percent} size={88} stroke={8} color={norm.accent} />
+              </div>
+              <form
+                className={styles.sportForm}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  addSportEntry(norm.id, parseSportInput(draft, norm.kind));
+                  setDrafts((currentDrafts) => ({ ...currentDrafts, [norm.id]: '' }));
+                }}
+              >
+                <label>
+                  Результат
+                  <input
+                    type="text"
+                    inputMode={norm.kind === 'higher' ? 'numeric' : 'decimal'}
+                    placeholder={norm.kind === 'higher' ? '0' : '22:00'}
+                    value={draft}
+                    onChange={(event) => setDrafts((currentDrafts) => ({ ...currentDrafts, [norm.id]: event.target.value }))}
+                  />
+                </label>
+                <button type="submit" aria-label={`Добавить ${norm.title}`}>
+                  <Plus size={18} />
+                </button>
+              </form>
+              <div className={styles.sportSummary}>
+                <div>
+                  <strong>{formatSportValue(current, norm)}</strong>
+                  <span>текущий</span>
+                </div>
+                <div>
+                  <strong>{formatSportValue(best, norm)}</strong>
+                  <span>лучший</span>
+                </div>
+                <div>
+                  <strong className={improved ? styles.weightProgress : regressed ? styles.weightRegression : ''}>
+                    {deltaText}
+                  </strong>
+                  <span>к прошлому</span>
+                </div>
               </div>
             </motion.article>
           );

@@ -115,9 +115,7 @@
 
 .statCard,
 .panel,
-.distanceCard,
-.courseCard,
-.workoutCard {
+.courseCard {
   border: 1px solid rgba(18, 28, 39, 0.08);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.76);
@@ -213,11 +211,6 @@
     rgba(255, 255, 255, 0.72);
 }
 
-.goalLocked {
-  order: 20;
-  opacity: 0.38;
-}
-
 .goalCheck {
   display: grid;
   place-items: center;
@@ -256,12 +249,6 @@
   border-color: rgba(24, 169, 153, 0.34);
   background: #18a999;
   color: #fff;
-}
-
-.goalCheck input:disabled + span {
-  cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.55);
-  color: rgba(101, 114, 130, 0.42);
 }
 
 .goalText {
@@ -332,9 +319,7 @@
 }
 
 .panelTitle,
-.stageHead,
-.distanceTop,
-.paceLine {
+.stageHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -348,8 +333,7 @@
 }
 
 .panelTitle h2,
-.stageHead h3,
-.distanceTop h2 {
+.stageHead h3 {
   margin: 0;
   color: #121c27;
 }
@@ -360,32 +344,11 @@
   font-weight: 950;
 }
 
-.normList,
 .taskList {
   display: grid;
   gap: 12px;
 }
 
-.normRow {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.2fr) 170px minmax(360px, 1.8fr);
-  align-items: center;
-  gap: 18px;
-  padding: 16px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(246, 244, 239, 0.58);
-}
-
-.normRow h3 {
-  margin: 0 0 4px;
-  color: #121c27;
-  font-size: 1rem;
-  line-height: 1.25;
-}
-
-.normRow span,
-.distanceTop span,
 .theoryRow span {
   color: #657282;
   font-size: 0.78rem;
@@ -393,8 +356,6 @@
   text-transform: uppercase;
 }
 
-.normRow input,
-.distanceCard input,
 .counters input {
   width: 100%;
   min-height: 44px;
@@ -407,346 +368,9 @@
   padding: 0 12px;
 }
 
-.normRow input:focus,
-.distanceCard input:focus,
 .counters input:focus {
   border-color: #18a999;
   box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
-}
-
-.badges {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
-  gap: 10px;
-}
-
-.badge {
-  display: grid;
-  gap: 6px;
-  justify-items: center;
-  min-width: 0;
-  text-align: center;
-}
-
-.badge span {
-  color: #657282;
-  font-size: 0.72rem;
-  font-weight: 850;
-  text-transform: none;
-}
-
-.medalGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.medalCard {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(246, 244, 239, 0.58);
-}
-
-.medalReady {
-  border-color: rgba(24, 169, 153, 0.28);
-  background: rgba(24, 169, 153, 0.1);
-}
-
-.medalHead {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.medalHead span,
-.medalHead strong {
-  display: block;
-}
-
-.medalHead span {
-  color: #657282;
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.medalHead strong {
-  margin-top: 4px;
-  color: #121c27;
-  font-size: 1.35rem;
-}
-
-.requirements {
-  display: grid;
-  gap: 10px;
-}
-
-.requirements div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  min-height: 58px;
-  padding: 12px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.66);
-}
-
-.requirements span {
-  color: #657282;
-  font-size: 0.84rem;
-  font-weight: 780;
-  line-height: 1.25;
-}
-
-.requirements strong {
-  color: #121c27;
-  font-size: 1.3rem;
-  white-space: nowrap;
-}
-
-.distanceGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.distanceCard {
-  display: grid;
-  gap: 18px;
-  padding: 22px;
-}
-
-.distanceTop h2 {
-  display: flex;
-  align-items: baseline;
-  gap: 0.12em;
-  font-size: clamp(2.3rem, 4vw, 4rem);
-  line-height: 0.9;
-}
-
-.distanceTop h2 small {
-  color: #121c27;
-  font-size: 0.46em;
-  font-weight: 950;
-  text-transform: uppercase;
-}
-
-.distanceCard label {
-  display: grid;
-  gap: 8px;
-  color: #657282;
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.runToggle {
-  min-height: 48px;
-  border: 1px solid rgba(18, 28, 39, 0.14);
-  border-radius: 8px;
-  background: #fff;
-  color: #657282;
-  cursor: pointer;
-  font-weight: 900;
-  text-align: left;
-  padding: 0 14px;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.runToggle:hover {
-  transform: translateY(-1px);
-  border-color: rgba(24, 169, 153, 0.3);
-  color: #121c27;
-}
-
-.runToggleActive {
-  border-color: rgba(24, 169, 153, 0.32);
-  background: rgba(24, 169, 153, 0.12);
-  color: #168f82;
-}
-
-.paceLine {
-  min-height: 44px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(18, 28, 39, 0.1);
-  color: #657282;
-  font-weight: 850;
-}
-
-.paceLine strong {
-  color: #121c27;
-}
-
-.workoutGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.workoutCard {
-  display: grid;
-  gap: 18px;
-  padding: 22px;
-}
-
-.workoutTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.workoutTop h2 {
-  margin: 4px 0 0;
-  color: #121c27;
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
-  line-height: 1;
-}
-
-.workoutTop span {
-  color: #657282;
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.workoutForm {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.workoutForm label {
-  display: grid;
-  gap: 8px;
-  color: #657282;
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.workoutForm input {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid rgba(18, 28, 39, 0.14);
-  border-radius: 8px;
-  background: #fff;
-  color: #121c27;
-  font-weight: 850;
-  outline: none;
-  padding: 0 12px;
-}
-
-.workoutForm input:focus {
-  border-color: #18a999;
-  box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
-}
-
-.workoutForm button {
-  display: grid;
-  min-height: 48px;
-  border: 1px solid rgba(24, 169, 153, 0.28);
-  border-radius: 8px;
-  background: #18a999;
-  color: #fff;
-  cursor: pointer;
-  place-items: center;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.workoutForm button:hover {
-  transform: translateY(-1px);
-  background: #168f82;
-}
-
-.workoutSummary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.workoutSummary div {
-  min-height: 76px;
-  padding: 14px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(246, 244, 239, 0.55);
-}
-
-.workoutSummary strong,
-.workoutSummary span {
-  display: block;
-}
-
-.workoutSummary strong {
-  color: #121c27;
-  font-size: 1.7rem;
-  line-height: 1;
-}
-
-.workoutSummary span {
-  margin-top: 6px;
-  color: #657282;
-  font-size: 0.78rem;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
-.workoutChart {
-  display: block;
-  min-height: 220px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.66);
-  overflow-x: auto;
-}
-
-.workoutLineChart {
-  display: block;
-  min-height: 220px;
-}
-
-.workoutGridLine {
-  stroke: rgba(18, 28, 39, 0.07);
-  stroke-width: 2;
-}
-
-.workoutPointValue {
-  fill: #fff;
-  font-size: 0.7rem;
-  font-weight: 950;
-  text-anchor: middle;
-}
-
-.workoutPointDate {
-  fill: #657282;
-  font-size: 0.72rem;
-  font-weight: 850;
-  text-anchor: middle;
-}
-
-.emptyChart {
-  display: grid;
-  gap: 8px;
-  width: 100%;
-  min-height: 220px;
-  align-self: center;
-  align-content: center;
-  justify-items: center;
-  color: rgba(101, 114, 130, 0.74);
-  font-size: 0.84rem;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .courseSummary {
@@ -881,6 +505,350 @@
   color: #df5b7d;
 }
 
+.pizzaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.pizzaStep {
+  display: block;
+}
+
+.pizzaStep input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pizzaStep span {
+  display: grid;
+  grid-template-columns: 20px 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 10px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.55);
+  color: #657282;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pizzaStep span:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 140, 56, 0.28);
+}
+
+.pizzaStep svg {
+  color: rgba(18, 28, 39, 0.22);
+}
+
+.pizzaStep strong {
+  color: #121c27;
+  font-size: 1rem;
+}
+
+.pizzaStep small {
+  color: #657282;
+  font-size: 0.74rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.pizzaStepDone {
+  border-color: rgba(242, 140, 56, 0.28) !important;
+  background: rgba(242, 140, 56, 0.1) !important;
+}
+
+.pizzaStepDone svg {
+  color: #f28c38;
+}
+
+.weightLayout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.weightForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  align-items: end;
+  gap: 10px;
+}
+
+.weightForm label {
+  display: grid;
+  gap: 8px;
+  color: #657282;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.weightForm input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(18, 28, 39, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #121c27;
+  font-weight: 850;
+  outline: none;
+  padding: 0 12px;
+}
+
+.weightForm input:focus {
+  border-color: #18a999;
+  box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
+}
+
+.weightForm button {
+  display: grid;
+  min-height: 48px;
+  border: 1px solid rgba(24, 169, 153, 0.28);
+  border-radius: 8px;
+  background: #18a999;
+  color: #fff;
+  cursor: pointer;
+  place-items: center;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.weightForm button:hover {
+  transform: translateY(-1px);
+  background: #168f82;
+}
+
+.weightSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.weightSummary div {
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.55);
+}
+
+.weightSummary strong,
+.weightSummary span {
+  display: block;
+}
+
+.weightSummary strong {
+  color: #121c27;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.weightSummary span {
+  margin-top: 8px;
+  color: #657282;
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.weightProgress {
+  color: #18a999 !important;
+}
+
+.weightRegression {
+  color: #df5b7d !important;
+}
+
+.weightChart {
+  display: block;
+  min-height: 240px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+  overflow-x: auto;
+}
+
+.weightLineChart {
+  display: block;
+  min-height: 240px;
+}
+
+.weightGridLine {
+  stroke: rgba(18, 28, 39, 0.07);
+  stroke-width: 2;
+}
+
+.weightTargetLine {
+  stroke: rgba(223, 91, 125, 0.44);
+  stroke-dasharray: 7 7;
+  stroke-width: 2;
+}
+
+.weightTargetText {
+  fill: #df5b7d;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.weightPointValue {
+  fill: #fff;
+  font-size: 0.7rem;
+  font-weight: 950;
+  text-anchor: middle;
+}
+
+.weightPointDate {
+  fill: #657282;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-anchor: middle;
+}
+
+.emptyChart {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 240px;
+  align-self: center;
+  align-content: center;
+  justify-items: center;
+  color: rgba(101, 114, 130, 0.74);
+  font-size: 0.84rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sportGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.sportCard {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 20px 50px rgba(18, 28, 39, 0.08);
+}
+
+.sportTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sportTop span {
+  color: #657282;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sportTop h2 {
+  margin: 4px 0 0;
+  color: #121c27;
+  font-size: 1.28rem;
+  line-height: 1.15;
+}
+
+.sportForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  align-items: end;
+  gap: 10px;
+}
+
+.sportForm label {
+  display: grid;
+  gap: 8px;
+  color: #657282;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.sportForm input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(18, 28, 39, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #121c27;
+  font-weight: 850;
+  outline: none;
+  padding: 0 12px;
+}
+
+.sportForm input:focus {
+  border-color: #18a999;
+  box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
+}
+
+.sportForm button {
+  display: grid;
+  min-height: 48px;
+  border: 1px solid rgba(18, 28, 39, 0.14);
+  border-radius: 8px;
+  background: #121c27;
+  color: #fff;
+  cursor: pointer;
+  place-items: center;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sportForm button:hover {
+  transform: translateY(-1px);
+  background: #203142;
+}
+
+.sportSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sportSummary div {
+  min-height: 76px;
+  padding: 14px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.55);
+}
+
+.sportSummary strong,
+.sportSummary span {
+  display: block;
+}
+
+.sportSummary strong {
+  color: #121c27;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.sportSummary span {
+  margin-top: 8px;
+  color: #657282;
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .interviewLayout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -936,14 +904,10 @@
 
 @media (max-width: 1180px) {
   .dashboardGrid,
-  .distanceGrid,
-  .workoutGrid,
+  .weightLayout,
+  .sportSummary,
   .interviewLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .normRow {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -967,15 +931,13 @@
   }
 
   .dashboardGrid,
-  .distanceGrid,
-  .workoutGrid,
+  .weightLayout,
+  .sportSummary,
   .interviewLayout,
   .courseSummary {
     grid-template-columns: 1fr;
   }
 
-  .badges,
-  .medalGrid,
   .counters {
     grid-template-columns: 1fr;
   }
@@ -990,22 +952,18 @@
     grid-template-columns: 1fr;
   }
 
+  .sportGrid {
+    grid-template-columns: 1fr;
+  }
+
   .nav {
     grid-template-columns: 1fr;
   }
 
   .panelTitle,
-  .stageHead,
-  .distanceTop,
-  .workoutTop,
-  .paceLine,
-  .medalHead {
+  .stageHead {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .requirements div {
-    grid-template-columns: 1fr;
   }
 
   .goalRow {

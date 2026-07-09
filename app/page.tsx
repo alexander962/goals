@@ -706,9 +706,9 @@ function WeightPage({
                 />
                 {points.map((point) => (
                   <g key={point.date}>
-                    <circle cx={point.x} cy={point.y} r="12" fill="#18a999" />
+                    <circle cx={point.x} cy={point.y} r="18" fill="#18a999" />
                     <text className={styles.weightPointValue} x={point.x} y={point.y + 4}>
-                      {point.value.toFixed(0)}
+                      {point.value}
                     </text>
                     <text className={styles.weightPointDate} x={point.x} y={chartHeight - 10}>
                       {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}

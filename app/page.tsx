@@ -81,10 +81,10 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
 });
 const weightTarget = 80;
 const sportNorms = [
-  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
-  { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
+  // { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  // { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
+  // { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
+  // { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
   { id: 'run-10-laps', title: 'Бег 12 кругов', target: 26, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ] as const;
 
@@ -771,18 +771,18 @@ function SportPage({
           const best =
             days.length === 0
               ? 0
-              : norm.kind === 'higher'
+              : norm?.kind === 'higher'
                 ? Math.max(...days.map(([, value]) => value))
                 : Math.min(...days.map(([, value]) => value));
           const rawDelta = previous === undefined ? 0 : current - previous;
-          const improved = previous !== undefined && (norm.kind === 'higher' ? rawDelta > 0 : rawDelta < 0);
-          const regressed = previous !== undefined && (norm.kind === 'higher' ? rawDelta < 0 : rawDelta > 0);
+          const improved = previous !== undefined && (norm?.kind === 'higher' ? rawDelta > 0 : rawDelta < 0);
+          const regressed = previous !== undefined && (norm?.kind === 'higher' ? rawDelta < 0 : rawDelta > 0);
           const percent = sportMetricPercent(entries, norm);
           const draft = drafts[norm.id] ?? '';
           const deltaText =
             previous === undefined
               ? '-'
-              : norm.kind === 'higher'
+              : norm?.kind === 'higher'
                 ? `${rawDelta > 0 ? '+' : ''}${Math.round(rawDelta)}`
                 : `${rawDelta > 0 ? '+' : rawDelta < 0 ? '-' : ''}${formatSportValue(Math.abs(rawDelta), norm)}`;
 

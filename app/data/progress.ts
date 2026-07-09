@@ -214,11 +214,11 @@ export const theoryStages: TheoryStage[] = [
       { id: 'devops', title: 'Nginx, Docker, CI/CD, Babel', mode: 'status' },
     ],
   },
-  {
-    id: 'theory-3',
-    title: '3 этап',
-    items: [{ id: 'vue-basic', title: 'Vue основы', mode: 'counter' }],
-  },
+  // {
+  //   id: 'theory-3',
+  //   title: '3 этап',
+  //   items: [{ id: 'vue-basic', title: 'Vue основы', mode: 'counter' }],
+  // },
 ];
 
 export const taskStages: TaskStage[] = [

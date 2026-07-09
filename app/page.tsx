@@ -706,8 +706,8 @@ function WeightPage({
                 />
                 {points.map((point) => (
                   <g key={point.date}>
-                    <circle cx={point.x} cy={point.y} r="18" fill="#18a999" />
-                    <text className={styles.weightPointValue} x={point.x} y={point.y + 4}>
+                    <circle cx={point.x} cy={point.y} r="14" fill="#18a999" />
+                    <text className={styles.weightPointValue} x={point.x} y={point.y + 3}>
                       {point.value}
                     </text>
                     <text className={styles.weightPointDate} x={point.x} y={chartHeight - 10}>

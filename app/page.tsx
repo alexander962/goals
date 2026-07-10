@@ -81,11 +81,11 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
 });
 const weightTarget = 80;
 const sportNorms = [
-  // { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  // { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  // { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
-  // { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
-  { id: 'run-10-laps', title: 'Бег 12 кругов', target: 26, unit: 'мин', kind: 'lower', accent: '#121c27' },
+  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
+  { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
+  { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
+  { id: 'run-10-laps', title: 'Бег 10 кругов', target: 22, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ] as const;
 
 const confidenceOptions = [
@@ -746,7 +746,7 @@ function SportPage({
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Вноси общий результат сразу за 4 подхода. Для бега указывай время 10 кругов в минутах или формате 26:00."
+        description="Вноси общий результат сразу за 4 подхода. Для бега указывай время 10 кругов в минутах или формате 22:00."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>
@@ -818,7 +818,7 @@ function SportPage({
                     // @ts-ignore
                     inputMode={norm.kind === 'higher' ? 'numeric' : 'decimal'}
                     // @ts-ignore
-                    placeholder={norm.kind === 'higher' ? '0' : '26:00'}
+                    placeholder={norm.kind === 'higher' ? '0' : '22:00'}
                     value={draft}
                     onChange={(event) => setDrafts((currentDrafts) => ({ ...currentDrafts, [norm.id]: event.target.value }))}
                   />

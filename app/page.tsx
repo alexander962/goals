@@ -85,7 +85,7 @@ const sportNorms = [
   { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
   { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
   { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
-  { id: 'run-10-laps', title: 'Бег 12 кругов', target: 24, unit: 'мин', kind: 'lower', accent: '#121c27' },
+  { id: 'run-10-laps', title: 'Бег 8 кругов', target: 18, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ] as const;
 
 const confidenceOptions = [

@@ -6,7 +6,7 @@ import {
   BookOpen,
   Brain,
   CheckCircle2,
-  Dumbbell,
+  // Dumbbell,
   Flame,
   Gauge,
   Home,
@@ -69,7 +69,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
   { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
-  { id: 'sport', label: 'Спорт', icon: Dumbbell },
+  // { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
 
 const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
@@ -105,7 +105,7 @@ const dashboardGoals = [
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
   { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'sport-norms', title: 'Выполнить все запланированные спортивные нормативы', source: 'sport' },
+  // { id: 'sport-norms', title: 'Выполнить все запланированные спортивные нормативы', source: 'sport' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -190,7 +190,8 @@ export default function HomePage() {
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
+    // return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
+    return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -280,7 +281,8 @@ export default function HomePage() {
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
         {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
-        {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
+        {/*{page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}*/}
+        {false && page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -326,7 +328,7 @@ function Dashboard({
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
     { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
-    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
+    // { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({

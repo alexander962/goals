@@ -81,10 +81,10 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
 });
 const weightTarget = 80;
 const sportNorms = [
-  { id: 'pullups', title: 'Подтягивания', target: 40, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'dips', title: 'Брусья', target: 60, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'pushups', title: 'Отжимания', target: 80, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
-  { id: 'abs', title: 'Пресс', target: 60, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
+  { id: 'pullups', title: 'Подтягивания', target: 12, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  { id: 'dips', title: 'Брусья', target: 20, unit: 'раз', kind: 'higher', accent: '#f28c38' },
+  { id: 'pushups', title: 'Отжимания', target: 40, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
+  { id: 'abs', title: 'Пресс', target: 15, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
   { id: 'run-10-laps', title: 'Бег 8 кругов', target: 18, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ] as const;
 
@@ -747,7 +747,7 @@ function SportPage({
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Вноси общий результат сразу за 4 подхода. Для бега указывай время 10 кругов в минутах или формате 22:00."
+        description="Вноси общий результат сразу за первый подход. Для бега указывай время 8 кругов в минутах или формате 22:00."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>

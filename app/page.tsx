@@ -9,6 +9,7 @@ import {
   Dumbbell,
   Flame,
   Gauge,
+  Languages,
   Home,
   PartyPopper,
   Pizza,
@@ -53,13 +54,14 @@ type DashboardStats = {
   tasks: number;
   interview: number;
   course: number;
+  english: number;
   nextPizza: number;
   weight: number;
   sport: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'course' | 'nextPizza' | 'weight' | 'sport';
+type Page = 'dashboard' | 'interview' | 'course' | 'english' | 'nextPizza' | 'weight' | 'sport';
 
 const storageKey = 'goals-progress-state-v1';
 
@@ -67,12 +69,17 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
+  { id: 'english', label: 'Английский', icon: Languages },
   { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
 
 const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
+const englishSections = Array.from({ length: 26 }, (_, index) => ({
+  id: `duolingo-module-2:${index + 1}`,
+  index: index + 1,
+}));
 const nextPizzaStepMinutes = 30;
 const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / nextPizzaStepMinutes) }, (_, index) => {
   const start = index * nextPizzaStepMinutes;
@@ -80,13 +87,17 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
   return { id: `next-pizza:${index + 1}`, index: index + 1, start, end };
 });
 const weightTarget = 80;
-const sportNorms = [
-  { id: 'pullups', title: 'Подтягивания', target: 12, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'dips', title: 'Брусья', target: 20, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'pushups', title: 'Отжимания', target: 40, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
-  { id: 'abs', title: 'Пресс', target: 15, unit: 'раз', kind: 'higher', accent: '#df5b7d' },
-  { id: 'run-10-laps', title: 'Бег 8 кругов', target: 18, unit: 'мин', kind: 'lower', accent: '#121c27' },
-] as const;
+type SportNorm = {
+  id: string;
+  title: string;
+  target: number;
+  unit: string;
+  kind: 'higher' | 'lower';
+  accent: string;
+};
+const sportNorms: readonly SportNorm[] = [
+  { id: 'run-10-laps', title: 'Бег 12 кругов', target: 32, unit: 'мин', kind: 'lower', accent: '#121c27' },
+];
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -103,6 +114,7 @@ const taskOptions = [
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
+  { id: 'duolingo-module-2', title: 'Пройти 2 модуль Duolingo', source: 'english' },
   { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
   { id: 'sport-norms', title: 'Выполнить все запланированные спортивные нормативы', source: 'sport' },
@@ -126,6 +138,11 @@ function formatVideoTime(minutesValue: number) {
 function nextPizzaPercent(state: AppState) {
   const completed = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
   return Math.round((completed / nextPizzaSteps.length) * 100);
+}
+
+function englishPercent(state: AppState) {
+  const completed = englishSections.filter((section) => state.englishCompleted[section.id]).length;
+  return Math.round((completed / englishSections.length) * 100);
 }
 
 function parseSportInput(value: string, kind: (typeof sportNorms)[number]['kind']) {
@@ -187,10 +204,11 @@ export default function HomePage() {
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
     const course = courseTotalPercent(courseModules, state);
+    const english = englishPercent(state);
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
+    return { theory, tasks, interview, course, english, nextPizza, weight, sport, total: average([interview, course, english, nextPizza, weight, sport]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -214,6 +232,10 @@ export default function HomePage() {
 
   const setCourseSection = (id: string, checked: boolean) => {
     setState((current) => ({ ...current, courseCompleted: { ...current.courseCompleted, [id]: checked } }));
+  };
+
+  const setEnglishSection = (id: string, checked: boolean) => {
+    setState((current) => ({ ...current, englishCompleted: { ...current.englishCompleted, [id]: checked } }));
   };
 
   const setNextPizzaStep = (id: string, checked: boolean) => {
@@ -278,6 +300,7 @@ export default function HomePage() {
       <section className={styles.content}>
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
+        {page === 'english' && <EnglishPage state={state} stats={stats} setEnglishSection={setEnglishSection} />}
         {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
         {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
@@ -298,6 +321,7 @@ export default function HomePage() {
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
+  if (source === 'english') return stats.english;
   if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
   if (source === 'sport') return stats.sport;
@@ -324,6 +348,7 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
+    { label: 'Английский', value: stats.english, color: '#58a700', icon: Languages },
     { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
@@ -412,6 +437,69 @@ function Dashboard({
                   </div>
                 )}
               </motion.article>
+            );
+          })}
+        </div>
+      </section>
+    </motion.div>
+  );
+}
+
+function EnglishPage({
+  state,
+  stats,
+  setEnglishSection,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setEnglishSection: (id: string, checked: boolean) => void;
+}) {
+  const completedSections = englishSections.filter((section) => state.englishCompleted[section.id]).length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Duolingo"
+        title="Английский — модуль 2"
+        description="Закрывай разделы второго модуля по одному. Общий прогресс рассчитывается автоматически по 26 разделам."
+      >
+        <ProgressRing value={stats.english} size={154} color="#58a700" label="модуль" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedSections}</strong>
+          <span>разделов пройдено</span>
+        </div>
+        <div>
+          <strong>{englishSections.length}</strong>
+          <span>разделов всего</span>
+        </div>
+        <div>
+          <strong>{englishSections.length - completedSections}</strong>
+          <span>разделов осталось</span>
+        </div>
+      </div>
+      <section className={styles.panel}>
+        <div className={styles.panelTitle}>
+          <h2>Разделы модуля</h2>
+          <span>{stats.english}%</span>
+        </div>
+        <div className={styles.englishGrid}>
+          {englishSections.map((section) => {
+            const checked = Boolean(state.englishCompleted[section.id]);
+            return (
+              <label className={styles.englishSection} key={section.id}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(event) => setEnglishSection(section.id, event.target.checked)}
+                />
+                <span className={checked ? styles.englishSectionDone : ''}>
+                  <CheckCircle2 size={20} />
+                  <strong>{String(section.index).padStart(2, '0')}</strong>
+                  <small>Раздел {section.index}</small>
+                </span>
+              </label>
             );
           })}
         </div>
@@ -747,7 +835,7 @@ function SportPage({
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Вноси общий результат сразу за первый подход. Для бега указывай время 8 кругов в минутах или формате 22:00."
+        description="Цель — пробежать 12 кругов за 32 минуты. Указывай результат в минутах или формате 32:00."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>

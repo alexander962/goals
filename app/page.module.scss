@@ -507,7 +507,7 @@
 
 .pizzaGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
   gap: 10px;
 }
 
@@ -613,6 +613,7 @@
 }
 
 .pizzaStep small {
+  min-width: 0;
   color: #657282;
   font-size: 0.74rem;
   font-weight: 850;

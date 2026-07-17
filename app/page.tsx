@@ -91,7 +91,7 @@ type SportNorm = {
 const sportNorms: readonly SportNorm[] = [
   { id: 'pullups', title: 'Подтягивания обратным хватом за 3 подхода', target: 25, unit: 'раз', kind: 'higher', accent: '#18a999' },
   { id: 'dips', title: 'Брусья за 3 подхода', target: 40, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'run-10-laps', title: 'Бег 8 кругов', target: 18, unit: 'мин', kind: 'lower', accent: '#121c27' },
+  { id: 'run-10-laps', title: 'Бег 10 кругов', target: 22, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ];
 
 const confidenceOptions = [
@@ -753,7 +753,7 @@ function SportPage({
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Для подтягиваний и брусьев вноси общий результат за 3 подхода. Для бега указывай время 8 кругов в минутах или формате 18:00."
+        description="Для подтягиваний и брусьев вноси общий результат за 3 подхода. Для бега указывай время 10 кругов в минутах или формате 22:00."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>

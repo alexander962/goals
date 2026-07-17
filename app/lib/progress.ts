@@ -14,7 +14,6 @@ export type AppState = {
   theoryStatus: Record<string, Confidence>;
   taskStatus: Record<string, TaskStatus>;
   courseCompleted: Record<string, boolean>;
-  englishCompleted: Record<string, boolean>;
   nextPizzaCompleted: Record<string, boolean>;
   weightEntries: { date: string; value: number }[];
   sportEntries: Record<string, { date: string; value: number }[]>;
@@ -26,7 +25,6 @@ export const emptyState: AppState = {
   theoryStatus: {},
   taskStatus: {},
   courseCompleted: {},
-  englishCompleted: {},
   nextPizzaCompleted: {},
   weightEntries: [],
   sportEntries: {},

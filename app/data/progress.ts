@@ -270,7 +270,7 @@ export const taskStages: TaskStage[] = [
   {
     id: 'new-task',
     title: 'Задачи new-task',
-    tasks: ['debounce', 'throttle', 'task18', 'task19', 'task20', 'task21', 'task22'],
+    tasks: ['debounce', 'throttle', 'task18', 'task19', 'task20', 'task21'],
   },
 ];
 

@@ -102,6 +102,39 @@
   font-size: 0.84rem;
 }
 
+.backupActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.backupActions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid rgba(18, 28, 39, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #657282;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 850;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.backupActions button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(24, 169, 153, 0.3);
+  color: #168f82;
+}
+
+.backupActions input {
+  display: none;
+}
+
 .content {
   width: 100%;
   padding: 34px clamp(18px, 4vw, 48px) 56px;
@@ -929,6 +962,10 @@
 
   .saveBadge {
     margin-top: 0;
+  }
+
+  .backupActions {
+    max-width: 420px;
   }
 
   .dashboardGrid,

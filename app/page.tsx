@@ -6,6 +6,7 @@ import {
   BookOpen,
   Brain,
   CheckCircle2,
+  Download,
   Dumbbell,
   Flame,
   Gauge,
@@ -18,8 +19,9 @@ import {
   Sparkles,
   Timer,
   Trophy,
+  Upload,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ProgressRing } from './components/ProgressRing';
 import { SectionHeader } from './components/SectionHeader';
 import { SegmentedControl } from './components/SegmentedControl';
@@ -62,6 +64,7 @@ type DashboardStats = {
 type Page = 'dashboard' | 'interview' | 'course' | 'nextPizza' | 'weight' | 'sport';
 
 const storageKey = 'goals-progress-state-v1';
+const backupStorageKey = `${storageKey}-backup`;
 
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
@@ -121,6 +124,25 @@ function getLocalDateKey(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+function hasProgress(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === 'object') return Object.values(value).some(hasProgress);
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  return typeof value === 'string' && value.length > 0 && value !== 'none' && value !== 'cannot';
+}
+
+function parseSavedState(raw: string | null): AppState | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<AppState>;
+    if (!parsed || typeof parsed !== 'object') return null;
+    return { ...emptyState, ...parsed };
+  } catch {
+    return null;
+  }
+}
+
 function formatVideoTime(minutesValue: number) {
   const totalSeconds = Math.round(minutesValue * 60);
   const hours = Math.floor(totalSeconds / 3600);
@@ -174,19 +196,49 @@ export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
   const [state, setState] = useState<AppState>(emptyState);
   const [hydrated, setHydrated] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(storageKey);
-    if (raw) {
-      const parsed = JSON.parse(raw) as Partial<AppState>;
-      setState({ ...emptyState, ...parsed });
-    }
+    const saved = parseSavedState(window.localStorage.getItem(storageKey));
+    const backup = parseSavedState(window.localStorage.getItem(backupStorageKey));
+    if (saved && hasProgress(saved)) setState(saved);
+    else if (backup && hasProgress(backup)) setState(backup);
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (hydrated) window.localStorage.setItem(storageKey, JSON.stringify(state));
+    if (!hydrated) return;
+    const nextRaw = JSON.stringify(state);
+    const currentRaw = window.localStorage.getItem(storageKey);
+    const current = parseSavedState(currentRaw);
+
+    // Never let an empty render erase real progress. Keep the last good value as a second line of defence.
+    if (!hasProgress(state) && current && hasProgress(current)) return;
+    if (currentRaw && current && hasProgress(current) && currentRaw !== nextRaw) {
+      window.localStorage.setItem(backupStorageKey, currentRaw);
+    }
+    window.localStorage.setItem(storageKey, nextRaw);
   }, [hydrated, state]);
+
+  const exportProgress = () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `goals-backup-${getLocalDateKey()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importProgress = async (file?: File) => {
+    if (!file) return;
+    const restored = parseSavedState(await file.text());
+    if (!restored || !hasProgress(restored)) {
+      window.alert('В файле не найден сохранённый прогресс.');
+      return;
+    }
+    setState(restored);
+  };
 
   const stats = useMemo(() => {
     const theory = theoryTotalPercent(theoryStages, state);
@@ -278,6 +330,25 @@ export default function HomePage() {
         <div className={styles.saveBadge}>
           <Save size={18} />
           <span>Автосохранение включено</span>
+        </div>
+        <div className={styles.backupActions}>
+          <button type="button" onClick={exportProgress}>
+            <Download size={17} />
+            Скачать копию
+          </button>
+          <button type="button" onClick={() => importInputRef.current?.click()}>
+            <Upload size={17} />
+            Восстановить
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={(event) => {
+              void importProgress(event.target.files?.[0]);
+              event.target.value = '';
+            }}
+          />
         </div>
       </aside>
 

@@ -210,7 +210,7 @@ export const theoryStages: TheoryStage[] = [
       { id: 'git', title: 'Git', mode: 'status' },
       { id: 'next', title: 'Next.js', mode: 'status' },
       { id: 'architecture', title: 'Архитектура', mode: 'status' },
-      { id: 'state-managers', title: 'Redux Toolkit, MobX, Zustand, React Query', mode: 'counter' },
+      { id: 'state-managers', title: 'Redux Toolkit, MobX, Zustand, React Query', mode: 'status' },
       { id: 'devops', title: 'Nginx, Docker, CI/CD, Babel', mode: 'status' },
     ],
   },

@@ -655,7 +655,6 @@ function VuePage({
               />
               <span className={checked ? styles.vueModuleDone : ''}>
                 <div className={styles.vueModuleNumber}>{String(module.index).padStart(2, '0')}</div>
-                <Code2 size={24} />
                 <strong>{module.title}</strong>
                 <CheckCircle2 size={21} />
               </span>

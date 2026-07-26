@@ -6,6 +6,7 @@ import {
   BookOpen,
   Brain,
   CheckCircle2,
+  Code2,
   Download,
   Dumbbell,
   Flame,
@@ -55,13 +56,14 @@ type DashboardStats = {
   tasks: number;
   interview: number;
   course: number;
+  vue: number;
   nextPizza: number;
   weight: number;
   sport: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'course' | 'nextPizza' | 'weight' | 'sport';
+type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'sport';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -70,10 +72,27 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
-  { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
+  { id: 'vue', label: 'Курс по Vue', icon: Code2 },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
-  { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
+
+const vueModules = [
+  'Введение',
+  'Настройка окружения',
+  'Основы',
+  'Компоненты',
+  'Свойства и события',
+  'Реактивность',
+  'Шаблоны и модели',
+  'Жизненный цикл',
+  'Custom directive, Provide / Inject',
+  'Переход на TypeScript',
+  'Pinia',
+  'Vue Router',
+  'Авторизация',
+  'Встроенные компоненты',
+  'Заключение',
+].map((title, index) => ({ id: `vue:${index + 1}`, index: index + 1, title }));
 
 const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
 const nextPizzaStepMinutes = 30;
@@ -112,9 +131,8 @@ const taskOptions = [
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
-  { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
+  { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'sport-norms', title: 'Выполнить все запланированные спортивные нормативы', source: 'sport' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -154,6 +172,11 @@ function formatVideoTime(minutesValue: number) {
 function nextPizzaPercent(state: AppState) {
   const completed = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
   return Math.round((completed / nextPizzaSteps.length) * 100);
+}
+
+function vuePercent(state: AppState) {
+  const completed = vueModules.filter((module) => state.vueCompleted[module.id]).length;
+  return Math.round((completed / vueModules.length) * 100);
 }
 
 function parseSportInput(value: string, kind: (typeof sportNorms)[number]['kind']) {
@@ -245,10 +268,11 @@ export default function HomePage() {
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
     const course = courseTotalPercent(courseModules, state);
+    const vue = vuePercent(state);
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
+    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, vue, weight]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -272,6 +296,10 @@ export default function HomePage() {
 
   const setCourseSection = (id: string, checked: boolean) => {
     setState((current) => ({ ...current, courseCompleted: { ...current.courseCompleted, [id]: checked } }));
+  };
+
+  const setVueModule = (id: string, checked: boolean) => {
+    setState((current) => ({ ...current, vueCompleted: { ...current.vueCompleted, [id]: checked } }));
   };
 
   const setNextPizzaStep = (id: string, checked: boolean) => {
@@ -355,6 +383,7 @@ export default function HomePage() {
       <section className={styles.content}>
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
         {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
+        {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
         {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
         {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
@@ -375,9 +404,8 @@ export default function HomePage() {
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
-  if (source === 'nextPizza') return stats.nextPizza;
+  if (source === 'vue') return stats.vue;
   if (source === 'weight') return stats.weight;
-  if (source === 'sport') return stats.sport;
   return 0;
 }
 
@@ -401,9 +429,8 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
-    { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
+    { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
-    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({
@@ -570,6 +597,69 @@ function CoursePage({
                 })}
               </div>
             </motion.article>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function VuePage({
+  state,
+  stats,
+  setVueModule,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setVueModule: (id: string, checked: boolean) => void;
+}) {
+  const completedModules = vueModules.filter((module) => state.vueCompleted[module.id]).length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Vue.js"
+        title="Курс по Vue"
+        description="Отмечай пройденные модули курса. Общий прогресс автоматически рассчитывается по 15 модулям."
+      >
+        <ProgressRing value={stats.vue} size={154} color="#42b883" label="vue" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedModules}</strong>
+          <span>модулей пройдено</span>
+        </div>
+        <div>
+          <strong>{vueModules.length}</strong>
+          <span>модулей всего</span>
+        </div>
+        <div>
+          <strong>{vueModules.length - completedModules}</strong>
+          <span>модулей осталось</span>
+        </div>
+      </div>
+      <div className={styles.vueGrid}>
+        {vueModules.map((module) => {
+          const checked = Boolean(state.vueCompleted[module.id]);
+          return (
+            <motion.label
+              className={styles.vueModule}
+              key={module.id}
+              whileHover={{ y: -3 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={(event) => setVueModule(module.id, event.target.checked)}
+              />
+              <span className={checked ? styles.vueModuleDone : ''}>
+                <div className={styles.vueModuleNumber}>{String(module.index).padStart(2, '0')}</div>
+                <Code2 size={24} />
+                <strong>{module.title}</strong>
+                <CheckCircle2 size={21} />
+              </span>
+            </motion.label>
           );
         })}
       </div>

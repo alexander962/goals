@@ -74,7 +74,6 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
   { id: 'vue', label: 'Курс по Vue', icon: Code2 },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
-  { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
 
 const vueModules = [
@@ -112,9 +111,9 @@ type SportNorm = {
   accent: string;
 };
 const sportNorms: readonly SportNorm[] = [
-  { id: 'pullups', title: 'Подтягивания за 2 подхода', target: 16, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'dips', title: 'Брусья за 2 подхода', target: 24, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'run-10-laps', title: 'Бег 10 кругов', target: 25, unit: 'мин', kind: 'lower', accent: '#121c27' },
+  { id: 'pullups', title: 'Подтягивания обратным хватом за 3 подхода', target: 25, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  { id: 'dips', title: 'Брусья за 3 подхода', target: 40, unit: 'раз', kind: 'higher', accent: '#f28c38' },
+  { id: 'run-10-laps', title: 'Бег 10 кругов', target: 22, unit: 'мин', kind: 'lower', accent: '#121c27' },
 ];
 
 const confidenceOptions = [
@@ -134,7 +133,6 @@ const dashboardGoals = [
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
   { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'sport-norms', title: 'Выполнить спортивные нормативы', source: 'sport' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -274,7 +272,7 @@ export default function HomePage() {
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, vue, weight, sport]) };
+    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, vue, weight]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -408,7 +406,6 @@ function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], sta
   if (source === 'course') return stats.course;
   if (source === 'vue') return stats.vue;
   if (source === 'weight') return stats.weight;
-  if (source === 'sport') return stats.sport;
   return 0;
 }
 
@@ -434,7 +431,6 @@ function Dashboard({
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
     { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
-    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({
@@ -453,7 +449,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсам, весу и спортивным нормативам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию и прохождению курса. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -917,7 +913,7 @@ function SportPage({
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Для подтягиваний и брусьев вноси общий результат за 2 подхода. Для бега указывай время 10 кругов в минутах или формате 25:00."
+        description="Для подтягиваний и брусьев вноси общий результат за 3 подхода. Для бега указывай время 10 кругов в минутах или формате 22:00."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>

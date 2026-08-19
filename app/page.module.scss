@@ -864,53 +864,6 @@
   line-height: 1.15;
 }
 
-.sportChecklist {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.sportChecklist label {
-  display: block;
-}
-
-.sportChecklist input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.sportChecklist span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 48px;
-  padding: 10px;
-  border: 1px solid rgba(18, 28, 39, 0.1);
-  border-radius: 8px;
-  background: rgba(246, 244, 239, 0.55);
-  color: #657282;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 850;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.sportChecklist svg {
-  color: rgba(18, 28, 39, 0.22);
-}
-
-.sportChecklist .sportLevelDone {
-  border-color: rgba(223, 91, 125, 0.3);
-  background: rgba(223, 91, 125, 0.1);
-  color: #121c27;
-}
-
-.sportChecklist .sportLevelDone svg {
-  color: #df5b7d;
-}
-
 .sportForm {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 52px;

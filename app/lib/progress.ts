@@ -18,6 +18,7 @@ export type AppState = {
   nextPizzaCompleted: Record<string, boolean>;
   weightEntries: { date: string; value: number }[];
   sportEntries: Record<string, { date: string; value: number }[]>;
+  sportChecks: Record<string, boolean>;
   completedGoals: Record<string, boolean>;
 };
 
@@ -30,6 +31,7 @@ export const emptyState: AppState = {
   nextPizzaCompleted: {},
   weightEntries: [],
   sportEntries: {},
+  sportChecks: {},
   completedGoals: {},
 };
 

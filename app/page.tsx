@@ -112,10 +112,14 @@ type SportNorm = {
   accent: string;
 };
 const sportNorms: readonly SportNorm[] = [
-  { id: 'sport-v2:pullups', title: 'Подтягивания за 2 подхода', target: 16, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'sport-v2:dips', title: 'Брусья за 2 подхода', target: 24, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'sport-v2:run-8-laps', title: 'Бег 8 кругов', target: 20, unit: 'мин', kind: 'lower', accent: '#121c27' },
+  { id: 'sport-v3:wide-pushups', title: 'Отжимания широким хватом за 4 подхода', target: 50, unit: 'раз', kind: 'higher', accent: '#18a999' },
+  { id: 'sport-v3:narrow-pushups', title: 'Отжимания узким хватом за 4 подхода', target: 35, unit: 'раз', kind: 'higher', accent: '#6d7dfc' },
+  { id: 'sport-v3:stepper', title: 'Степпер без остановок за один подход', target: 5000, unit: 'шагов', kind: 'higher', accent: '#f28c38' },
 ];
+const pressLevels = [1, 2, 3].map((level) => ({
+  id: `sport-v3:press-level-${level}`,
+  title: `${level} уровень`,
+}));
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -214,7 +218,13 @@ function sportMetricPercent(entries: { date: string; value: number }[] = [], nor
 }
 
 function sportTotalPercent(state: AppState) {
-  return average(sportNorms.map((norm) => sportMetricPercent(state.sportEntries[norm.id], norm)));
+  const pressPercent = Math.round(
+    (pressLevels.filter((level) => state.sportChecks[level.id]).length / pressLevels.length) * 100,
+  );
+  return average([
+    ...sportNorms.map((norm) => sportMetricPercent(state.sportEntries[norm.id], norm)),
+    pressPercent,
+  ]);
 }
 
 export default function HomePage() {
@@ -327,6 +337,13 @@ export default function HomePage() {
     }));
   };
 
+  const setSportCheck = (id: string, checked: boolean) => {
+    setState((current) => ({
+      ...current,
+      sportChecks: { ...current.sportChecks, [id]: checked },
+    }));
+  };
+
   const setDashboardGoal = (id: string, checked: boolean) => {
     setState((current) => ({ ...current, completedGoals: { ...current.completedGoals, [id]: checked } }));
   };
@@ -388,7 +405,14 @@ export default function HomePage() {
         {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
         {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
-        {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
+        {page === 'sport' && (
+          <SportPage
+            state={state}
+            stats={stats}
+            addSportEntry={addSportEntry}
+            setSportCheck={setSportCheck}
+          />
+        )}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -907,20 +931,26 @@ function SportPage({
   state,
   stats,
   addSportEntry,
+  setSportCheck,
 }: {
   state: AppState;
   stats: DashboardStats;
   addSportEntry: (id: string, value: number) => void;
+  setSportCheck: (id: string, checked: boolean) => void;
 }) {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const completedNorms = sportNorms.filter((norm) => sportMetricPercent(state.sportEntries[norm.id], norm) >= 100).length;
+  const completedPressLevels = pressLevels.filter((level) => state.sportChecks[level.id]).length;
+  const pressPercent = Math.round((completedPressLevels / pressLevels.length) * 100);
+  const completedNorms =
+    sportNorms.filter((norm) => sportMetricPercent(state.sportEntries[norm.id], norm) >= 100).length +
+    Number(completedPressLevels === pressLevels.length);
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
       <SectionHeader
         eyebrow="Нормативы"
         title="Спорт"
-        description="Для подтягиваний и брусьев вноси общий результат за 2 подхода. Для бега указывай время 8 кругов в минутах или формате 20:00."
+        description="Для отжиманий вноси общий результат за 4 подхода, для степпера — число шагов без остановок. Пресс считается выполненным после прохождения всех трёх уровней без остановки."
       >
         <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
       </SectionHeader>
@@ -930,7 +960,7 @@ function SportPage({
           <span>нормативов закрыто</span>
         </div>
         <div>
-          <strong>{sportNorms.length}</strong>
+          <strong>{sportNorms.length + 1}</strong>
           <span>нормативов всего</span>
         </div>
         <div>
@@ -939,6 +969,47 @@ function SportPage({
         </div>
       </div>
       <div className={styles.sportGrid}>
+        <motion.article className={styles.sportCard} whileHover={{ y: -4 }}>
+          <div className={styles.sportTop}>
+            <div>
+              <span>Без единой остановки</span>
+              <h2>Пресс — пройти уровни 1, 2 и 3</h2>
+            </div>
+            <ProgressRing value={pressPercent} size={88} stroke={8} color="#df5b7d" />
+          </div>
+          <div className={styles.sportChecklist}>
+            {pressLevels.map((level) => {
+              const checked = Boolean(state.sportChecks[level.id]);
+              return (
+                <label key={level.id}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(event) => setSportCheck(level.id, event.target.checked)}
+                  />
+                  <span className={checked ? styles.sportLevelDone : ''}>
+                    <CheckCircle2 size={19} />
+                    {level.title}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <div className={styles.sportSummary}>
+            <div>
+              <strong>{completedPressLevels} / 3</strong>
+              <span>уровней пройдено</span>
+            </div>
+            <div>
+              <strong>{pressPercent}%</strong>
+              <span>готовность</span>
+            </div>
+            <div>
+              <strong>{completedPressLevels === 3 ? 'Да' : 'Нет'}</strong>
+              <span>норматив закрыт</span>
+            </div>
+          </div>
+        </motion.article>
         {sportNorms.map((norm) => {
           const entries = state.sportEntries[norm.id] ?? [];
           const days = Object.entries(lastEntryByDay(entries)).sort(([a], [b]) => a.localeCompare(b));

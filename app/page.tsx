@@ -72,7 +72,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
-  { id: 'vue', label: 'Курс по Vue', icon: Code2 },
+  { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
@@ -96,11 +96,11 @@ const vueModules = [
 ].map((title, index) => ({ id: `vue:${index + 1}`, index: index + 1, title }));
 
 const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
-const nextPizzaStepMinutes = 30;
+const nextPizzaStepMinutes = 10;
 const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / nextPizzaStepMinutes) }, (_, index) => {
   const start = index * nextPizzaStepMinutes;
   const end = Math.min(start + nextPizzaStepMinutes, nextPizzaVideoMinutes);
-  return { id: `next-pizza:${index + 1}`, index: index + 1, start, end };
+  return { id: `next-pizza-10m:${index + 1}`, index: index + 1, start, end };
 });
 const weightTarget = 80;
 type SportNorm = {
@@ -132,7 +132,7 @@ const taskOptions = [
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
-  { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' },
+  { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
   { id: 'sport-norms', title: 'Выполнить спортивные нормативы', source: 'sport' },
 ] as const;
@@ -274,7 +274,7 @@ export default function HomePage() {
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, vue, weight, sport]) };
+    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -406,7 +406,7 @@ export default function HomePage() {
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
-  if (source === 'vue') return stats.vue;
+  if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
   if (source === 'sport') return stats.sport;
   return 0;
@@ -432,7 +432,7 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
-    { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 },
+    { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
@@ -453,7 +453,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсам, весу и спортивным нормативам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу и спортивным нормативам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -680,14 +680,17 @@ function NextPizzaPage({
   setNextPizzaStep: (id: string, checked: boolean) => void;
 }) {
   const completedSteps = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
-  const completedMinutes = Math.min(completedSteps * nextPizzaStepMinutes, nextPizzaVideoMinutes);
+  const completedMinutes = nextPizzaSteps.reduce(
+    (sum, step) => sum + (state.nextPizzaCompleted[step.id] ? step.end - step.start : 0),
+    0,
+  );
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
       <SectionHeader
         eyebrow="Fullstack clone"
         title="Приложение Next Pizza"
-        description="Отмечай каждый закрытый получасовой отрезок видео. Один шаг равен 30 минутам работы над клоном Додо Пиццы."
+        description="Отмечай каждый закрытый 10-минутный отрезок видео. Из пройденных этапов автоматически рассчитывается общий прогресс приложения."
       >
         <ProgressRing value={stats.nextPizza} size={154} color="#f28c38" label="pizza" />
       </SectionHeader>

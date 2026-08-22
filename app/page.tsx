@@ -15,6 +15,8 @@ import {
   PartyPopper,
   Pizza,
   Plus,
+  Repeat2,
+  RotateCcw,
   Save,
   Scale,
   Sparkles,
@@ -60,10 +62,11 @@ type DashboardStats = {
   nextPizza: number;
   weight: number;
   sport: number;
+  habits: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'sport';
+type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -74,8 +77,16 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
   { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
-  { id: 'sport', label: 'Спорт', icon: Dumbbell },
+  { id: 'habits', label: 'Привычки', icon: Repeat2 },
 ];
+
+const habits = [
+  { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
+  { id: 'safe-content', title: 'Нет просмотру вредного контента самому или до выполнения плана', accent: '#df5b7d' },
+  { id: 'no-coffee', title: 'Нет кофе', accent: '#f28c38' },
+  { id: 'no-sweets-flour', title: 'Нет сладкому и мучному', accent: '#18a999' },
+] as const;
+const habitDays = Array.from({ length: 100 }, (_, index) => index + 1);
 
 const vueModules = [
   'Введение',
@@ -134,7 +145,7 @@ const dashboardGoals = [
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
   { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'sport-norms', title: 'Выполнить спортивные нормативы', source: 'sport' },
+  { id: 'root-four-habits', title: 'Усвоить и укоренить четыре полезные привычки', source: 'habits' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -217,6 +228,10 @@ function sportTotalPercent(state: AppState) {
   return average(sportNorms.map((norm) => sportMetricPercent(state.sportEntries[norm.id], norm)));
 }
 
+function habitsTotalPercent(state: AppState) {
+  return average(habits.map((habit) => Math.min(100, state.habitProgress[habit.id] ?? 0)));
+}
+
 export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
   const [state, setState] = useState<AppState>(emptyState);
@@ -274,7 +289,8 @@ export default function HomePage() {
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
-    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, total: average([interview, course, nextPizza, weight, sport]) };
+    const habits = habitsTotalPercent(state);
+    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, habits, total: average([interview, course, nextPizza, weight, habits]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -324,6 +340,23 @@ export default function HomePage() {
         ...current.sportEntries,
         [id]: [...(current.sportEntries[id] ?? []), { date: getLocalDateKey(), value: Number(value.toFixed(2)) }],
       },
+    }));
+  };
+
+  const setHabitProgress = (id: string, day: number) => {
+    setState((current) => ({
+      ...current,
+      habitProgress: {
+        ...current.habitProgress,
+        [id]: Math.max(current.habitProgress[id] ?? 0, Math.min(100, day)),
+      },
+    }));
+  };
+
+  const resetHabitProgress = (id: string) => {
+    setState((current) => ({
+      ...current,
+      habitProgress: { ...current.habitProgress, [id]: 0 },
     }));
   };
 
@@ -388,7 +421,14 @@ export default function HomePage() {
         {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
         {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
-        {page === 'sport' && <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />}
+        {page === 'habits' && (
+          <HabitsPage
+            state={state}
+            stats={stats}
+            setHabitProgress={setHabitProgress}
+            resetHabitProgress={resetHabitProgress}
+          />
+        )}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -408,7 +448,7 @@ function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], sta
   if (source === 'course') return stats.course;
   if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
-  if (source === 'sport') return stats.sport;
+  if (source === 'habits') return stats.habits;
   return 0;
 }
 
@@ -434,7 +474,7 @@ function Dashboard({
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
     { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
-    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
+    { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({
@@ -453,7 +493,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу и спортивным нормативам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -898,6 +938,94 @@ function WeightPage({
             )}
           </div>
         </section>
+      </div>
+    </motion.div>
+  );
+}
+
+function HabitsPage({
+  state,
+  stats,
+  setHabitProgress,
+  resetHabitProgress,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setHabitProgress: (id: string, day: number) => void;
+  resetHabitProgress: (id: string) => void;
+}) {
+  const completedHabits = habits.filter((habit) => (state.habitProgress[habit.id] ?? 0) >= 100).length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="100 дней"
+        title="Трекер привычек"
+        description="Каждый успешный день отмечай на шкале. Если сорвался или пропустил день — сбрось только нужную привычку и начни её серию заново."
+      >
+        <ProgressRing value={stats.habits} size={154} color="#6d7dfc" label="привычки" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedHabits}</strong>
+          <span>привычек укоренено</span>
+        </div>
+        <div>
+          <strong>{habits.length}</strong>
+          <span>привычек всего</span>
+        </div>
+        <div>
+          <strong>{stats.habits}%</strong>
+          <span>общий прогресс</span>
+        </div>
+      </div>
+      <div className={styles.habitsGrid}>
+        {habits.map((habit, index) => {
+          const currentDay = Math.min(100, state.habitProgress[habit.id] ?? 0);
+          return (
+            <motion.article className={styles.habitCard} key={habit.id} whileHover={{ y: -3 }}>
+              <div className={styles.habitHead}>
+                <div className={styles.habitIndex} style={{ color: habit.accent, backgroundColor: `${habit.accent}18` }}>
+                  {String(index + 1).padStart(2, '0')}
+                </div>
+                <div>
+                  <small>Текущая серия: {currentDay} дней</small>
+                  <h2>{habit.title}</h2>
+                </div>
+                <ProgressRing value={currentDay} size={76} stroke={7} color={habit.accent} />
+              </div>
+              <div className={styles.habitDays} aria-label={`Прогресс привычки: ${habit.title}`}>
+                {habitDays.map((day) => (
+                  <button
+                    type="button"
+                    key={day}
+                    className={day <= currentDay ? styles.habitDayDone : ''}
+                    style={day <= currentDay ? { backgroundColor: habit.accent, borderColor: habit.accent } : undefined}
+                    aria-pressed={day <= currentDay}
+                    aria-label={`Отметить ${day} день`}
+                    onClick={() => setHabitProgress(habit.id, day)}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.habitFooter}>
+                <span>{currentDay >= 100 ? 'Привычка укоренилась' : `До цели осталось ${100 - currentDay} дней`}</span>
+                <button
+                  type="button"
+                  className={styles.habitReset}
+                  disabled={currentDay === 0}
+                  onClick={() => {
+                    if (window.confirm(`Сбросить прогресс привычки «${habit.title}»?`)) resetHabitProgress(habit.id);
+                  }}
+                >
+                  <RotateCcw size={17} />
+                  Сбросить
+                </button>
+              </div>
+            </motion.article>
+          );
+        })}
       </div>
     </motion.div>
   );

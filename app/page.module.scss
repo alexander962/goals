@@ -875,22 +875,26 @@
 
 .habitDays {
   display: grid;
-  grid-template-columns: repeat(10, minmax(34px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fill, 30px);
+  gap: 6px;
 }
 
 .habitDays button {
   display: grid;
-  aspect-ratio: 1;
-  min-width: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border: 1px solid rgba(18, 28, 39, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   background: rgba(246, 244, 239, 0.64);
   color: #657282;
   cursor: pointer;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
   font-weight: 900;
+  line-height: 1;
   place-items: center;
+  text-align: center;
   transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
@@ -1182,7 +1186,7 @@
   }
 
   .habitDays {
-    grid-template-columns: repeat(5, minmax(34px, 1fr));
+    grid-template-columns: repeat(auto-fill, 30px);
   }
 
   .habitFooter {

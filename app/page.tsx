@@ -66,7 +66,7 @@ type DashboardStats = {
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits';
+type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'sport';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -78,6 +78,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
+  { id: 'sport', label: 'Спорт', icon: Dumbbell },
 ];
 
 const habits = [
@@ -146,6 +147,7 @@ const dashboardGoals = [
   { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
   { id: 'root-four-habits', title: 'Усвоить и укоренить четыре полезные привычки', source: 'habits' },
+  { id: 'sport-norms', title: 'Выполнить спортивные нормативы', source: 'sport' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -290,7 +292,7 @@ export default function HomePage() {
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const sport = sportTotalPercent(state);
     const habits = habitsTotalPercent(state);
-    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, habits, total: average([interview, course, nextPizza, weight, habits]) };
+    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, habits, total: average([interview, course, nextPizza, weight, habits, sport]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -429,6 +431,9 @@ export default function HomePage() {
             resetHabitProgress={resetHabitProgress}
           />
         )}
+        {page === 'sport' && (
+          <SportPage state={state} stats={stats} addSportEntry={addSportEntry} />
+        )}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -449,6 +454,7 @@ function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], sta
   if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
   if (source === 'habits') return stats.habits;
+  if (source === 'sport') return stats.sport;
   return 0;
 }
 
@@ -475,6 +481,7 @@ function Dashboard({
     { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
+    { label: 'Спорт', value: stats.sport, color: '#121c27', icon: Dumbbell },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({
@@ -493,7 +500,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу, привычкам и спортивным нормативам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>

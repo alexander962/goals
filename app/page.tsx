@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Code2,
   Download,
-  Dumbbell,
   Flame,
   Gauge,
   Home,
@@ -61,7 +60,6 @@ type DashboardStats = {
   vue: number;
   nextPizza: number;
   weight: number;
-  sport: number;
   habits: number;
   total: number;
 };
@@ -75,6 +73,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
+  { id: 'vue', label: 'Курс по Vue', icon: Code2 },
   { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
@@ -85,6 +84,7 @@ const habits = [
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому или до выполнения плана', accent: '#df5b7d' },
   { id: 'no-coffee', title: 'Нет кофе', accent: '#f28c38' },
   { id: 'no-sweets-flour', title: 'Нет сладкому и мучному', accent: '#18a999' },
+  { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
 ] as const;
 const habitDays = Array.from({ length: 100 }, (_, index) => index + 1);
 
@@ -114,19 +114,6 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
   return { id: `next-pizza-10m:${index + 1}`, index: index + 1, start, end };
 });
 const weightTarget = 80;
-type SportNorm = {
-  id: string;
-  title: string;
-  target: number;
-  unit: string;
-  kind: 'higher' | 'lower';
-  accent: string;
-};
-const sportNorms: readonly SportNorm[] = [
-  { id: 'sport-v2:pullups', title: 'Подтягивания за 2 подхода', target: 16, unit: 'раз', kind: 'higher', accent: '#18a999' },
-  { id: 'sport-v2:dips', title: 'Брусья за 2 подхода', target: 24, unit: 'раз', kind: 'higher', accent: '#f28c38' },
-  { id: 'sport-v2:run-8-laps', title: 'Бег 8 кругов', target: 20, unit: 'мин', kind: 'lower', accent: '#121c27' },
-];
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -143,9 +130,10 @@ const taskOptions = [
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
   { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
+  { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' },
   { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'root-four-habits', title: 'Усвоить и укоренить четыре полезные привычки', source: 'habits' },
+  { id: 'root-five-habits', title: 'Усвоить и укоренить пять полезных привычек', source: 'habits' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -190,42 +178,6 @@ function nextPizzaPercent(state: AppState) {
 function vuePercent(state: AppState) {
   const completed = vueModules.filter((module) => state.vueCompleted[module.id]).length;
   return Math.round((completed / vueModules.length) * 100);
-}
-
-function parseSportInput(value: string, kind: (typeof sportNorms)[number]['kind']) {
-  const normalized = value.trim().replace(',', '.');
-  if (!normalized) return 0;
-  if (kind === 'lower' && normalized.includes(':')) {
-    const [minutes, seconds = '0'] = normalized.split(':');
-    return Number(minutes) + Number(seconds) / 60;
-  }
-  return Number(normalized) || 0;
-}
-
-function formatSportValue(value: number, norm: (typeof sportNorms)[number]) {
-  if (!value) return '-';
-  if (norm.kind === 'lower') {
-    const totalSeconds = Math.round(value * 60);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = String(totalSeconds % 60).padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  }
-  return String(Math.round(value));
-}
-
-function sportMetricPercent(entries: { date: string; value: number }[] = [], norm: (typeof sportNorms)[number]) {
-  const values = Object.values(lastEntryByDay(entries)).filter((value) => value > 0);
-  if (!values.length) return 0;
-  // @ts-ignore
-  const best = norm.kind === 'higher' ? Math.max(...values) : Math.min(...values);
-  // @ts-ignore
-  return norm.kind === 'higher'
-    ? Math.min(100, Math.round((best / norm.target) * 100))
-    : Math.min(100, Math.round((norm.target / best) * 100));
-}
-
-function sportTotalPercent(state: AppState) {
-  return average(sportNorms.map((norm) => sportMetricPercent(state.sportEntries[norm.id], norm)));
 }
 
 function habitsTotalPercent(state: AppState) {
@@ -288,9 +240,8 @@ export default function HomePage() {
     const vue = vuePercent(state);
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
-    const sport = sportTotalPercent(state);
     const habits = habitsTotalPercent(state);
-    return { theory, tasks, interview, course, vue, nextPizza, weight, sport, habits, total: average([interview, course, nextPizza, weight, habits]) };
+    return { theory, tasks, interview, course, vue, nextPizza, weight, habits, total: average([interview, course, vue, nextPizza, weight, habits]) };
   }, [state]);
 
   const setCounter = (id: string, field: keyof CounterValue, value: string) => {
@@ -329,17 +280,6 @@ export default function HomePage() {
     setState((current) => ({
       ...current,
       weightEntries: [...current.weightEntries, { date: getLocalDateKey(), value: Number(value.toFixed(1)) }],
-    }));
-  };
-
-  const addSportEntry = (id: string, value: number) => {
-    if (!Number.isFinite(value) || value <= 0) return;
-    setState((current) => ({
-      ...current,
-      sportEntries: {
-        ...current.sportEntries,
-        [id]: [...(current.sportEntries[id] ?? []), { date: getLocalDateKey(), value: Number(value.toFixed(2)) }],
-      },
     }));
   };
 
@@ -446,6 +386,7 @@ export default function HomePage() {
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
   if (source === 'interview') return stats.interview;
   if (source === 'course') return stats.course;
+  if (source === 'vue') return stats.vue;
   if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
   if (source === 'habits') return stats.habits;
@@ -472,6 +413,7 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
+    { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 },
     { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
@@ -493,7 +435,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, курсам, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -1031,128 +973,6 @@ function HabitsPage({
   );
 }
 
-function SportPage({
-  state,
-  stats,
-  addSportEntry,
-}: {
-  state: AppState;
-  stats: DashboardStats;
-  addSportEntry: (id: string, value: number) => void;
-}) {
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const completedNorms = sportNorms.filter((norm) => sportMetricPercent(state.sportEntries[norm.id], norm) >= 100).length;
-
-  return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-      <SectionHeader
-        eyebrow="Нормативы"
-        title="Спорт"
-        description="Для подтягиваний и брусьев вноси общий результат за 2 подхода. Для бега указывай время 8 кругов в минутах или формате 20:00."
-      >
-        <ProgressRing value={stats.sport} size={154} color="#121c27" label="спорт" />
-      </SectionHeader>
-      <div className={styles.courseSummary}>
-        <div>
-          <strong>{completedNorms}</strong>
-          <span>нормативов закрыто</span>
-        </div>
-        <div>
-          <strong>{sportNorms.length}</strong>
-          <span>нормативов всего</span>
-        </div>
-        <div>
-          <strong>{stats.sport}%</strong>
-          <span>общая готовность</span>
-        </div>
-      </div>
-      <div className={styles.sportGrid}>
-        {sportNorms.map((norm) => {
-          const entries = state.sportEntries[norm.id] ?? [];
-          const days = Object.entries(lastEntryByDay(entries)).sort(([a], [b]) => a.localeCompare(b));
-          const current = days.at(-1)?.[1] ?? 0;
-          const previous = days.at(-2)?.[1];
-          const best =
-            days.length === 0
-              ? 0
-              // @ts-ignore
-              : norm?.kind === 'higher'
-                ? Math.max(...days.map(([, value]) => value))
-                : Math.min(...days.map(([, value]) => value));
-          const rawDelta = previous === undefined ? 0 : current - previous;
-          // @ts-ignore
-          const improved = previous !== undefined && (norm?.kind === 'higher' ? rawDelta > 0 : rawDelta < 0);
-          // @ts-ignore
-          const regressed = previous !== undefined && (norm?.kind === 'higher' ? rawDelta < 0 : rawDelta > 0);
-          const percent = sportMetricPercent(entries, norm);
-          const draft = drafts[norm.id] ?? '';
-          const deltaText =
-            previous === undefined
-              ? '-'
-              // @ts-ignore
-              : norm?.kind === 'higher'
-                ? `${rawDelta > 0 ? '+' : ''}${Math.round(rawDelta)}`
-                : `${rawDelta > 0 ? '+' : rawDelta < 0 ? '-' : ''}${formatSportValue(Math.abs(rawDelta), norm)}`;
-
-          return (
-            <motion.article className={styles.sportCard} key={norm.id} whileHover={{ y: -4 }}>
-              <div className={styles.sportTop}>
-                <div>
-                  <span>
-                    Норма {formatSportValue(norm.target, norm)} {norm.unit}
-                  </span>
-                  <h2>{norm.title}</h2>
-                </div>
-                <ProgressRing value={percent} size={88} stroke={8} color={norm.accent} />
-              </div>
-              <form
-                className={styles.sportForm}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  addSportEntry(norm.id, parseSportInput(draft, norm.kind));
-                  setDrafts((currentDrafts) => ({ ...currentDrafts, [norm.id]: '' }));
-                }}
-              >
-                <label>
-                  Результат
-                  <input
-                    type="text"
-                    // @ts-ignore
-                    inputMode={norm.kind === 'higher' ? 'numeric' : 'decimal'}
-                    // @ts-ignore
-                    placeholder={norm.kind === 'higher' ? '0' : '22:00'}
-                    value={draft}
-                    onChange={(event) => setDrafts((currentDrafts) => ({ ...currentDrafts, [norm.id]: event.target.value }))}
-                  />
-                </label>
-                <button type="submit" aria-label={`Добавить ${norm.title}`}>
-                  <Plus size={18} />
-                </button>
-              </form>
-              <div className={styles.sportSummary}>
-                <div>
-                  <strong>{formatSportValue(current, norm)}</strong>
-                  <span>текущий</span>
-                </div>
-                <div>
-                  <strong>{formatSportValue(best, norm)}</strong>
-                  <span>лучший</span>
-                </div>
-                <div>
-                  <strong className={improved ? styles.weightProgress : regressed ? styles.weightRegression : ''}>
-                    {deltaText}
-                  </strong>
-                  <span>к прошлому</span>
-                </div>
-              </div>
-            </motion.article>
-          );
-        })}
-      </div>
-    </motion.div>
-  );
-}
-
 function InterviewPage({
   state,
   stats,
@@ -1244,7 +1064,7 @@ function InterviewPage({
                           value={state.taskStatus[id] ?? 'cannot'}
                           options={taskOptions}
                           onChange={(value) => setTask(id, value)}
-                          tone="sport"
+                          tone="task"
                         />
                       </div>
                     );

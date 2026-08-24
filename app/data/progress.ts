@@ -214,11 +214,11 @@ export const theoryStages: TheoryStage[] = [
       { id: 'devops', title: 'Nginx, Docker, CI/CD, Babel', mode: 'status' },
     ],
   },
-  // {
-  //   id: 'theory-3',
-  //   title: '3 этап',
-  //   items: [{ id: 'vue-basic', title: 'Vue основы', mode: 'counter' }],
-  // },
+  {
+    id: 'theory-3',
+    title: '3 этап',
+    items: [{ id: 'vue-basic', title: 'Vue основы', mode: 'status' }],
+  },
 ];
 
 export const taskStages: TaskStage[] = [
@@ -312,6 +312,11 @@ export const taskStages: TaskStage[] = [
       'task39',
       'task40',
     ],
+  },
+  {
+    id: 'vue-tasks',
+    title: 'Задачи vue-tasks',
+    tasks: ['task0', 'task1', 'task2', 'task3', 'task4', 'task5', 'task6'],
   },
 ];
 

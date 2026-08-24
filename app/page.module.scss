@@ -944,127 +944,6 @@
   opacity: 0.42;
 }
 
-.sportGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-.sportCard {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: 0 20px 50px rgba(18, 28, 39, 0.08);
-}
-
-.sportTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.sportTop span {
-  color: #657282;
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.sportTop h2 {
-  margin: 4px 0 0;
-  color: #121c27;
-  font-size: 1.28rem;
-  line-height: 1.15;
-}
-
-.sportForm {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 52px;
-  align-items: end;
-  gap: 10px;
-}
-
-.sportForm label {
-  display: grid;
-  gap: 8px;
-  color: #657282;
-  font-size: 0.84rem;
-  font-weight: 900;
-}
-
-.sportForm input {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid rgba(18, 28, 39, 0.14);
-  border-radius: 8px;
-  background: #fff;
-  color: #121c27;
-  font-weight: 850;
-  outline: none;
-  padding: 0 12px;
-}
-
-.sportForm input:focus {
-  border-color: #18a999;
-  box-shadow: 0 0 0 4px rgba(24, 169, 153, 0.12);
-}
-
-.sportForm button {
-  display: grid;
-  min-height: 48px;
-  border: 1px solid rgba(18, 28, 39, 0.14);
-  border-radius: 8px;
-  background: #121c27;
-  color: #fff;
-  cursor: pointer;
-  place-items: center;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.sportForm button:hover {
-  transform: translateY(-1px);
-  background: #203142;
-}
-
-.sportSummary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.sportSummary div {
-  min-height: 76px;
-  padding: 14px;
-  border: 1px solid rgba(18, 28, 39, 0.08);
-  border-radius: 8px;
-  background: rgba(246, 244, 239, 0.55);
-}
-
-.sportSummary strong,
-.sportSummary span {
-  display: block;
-}
-
-.sportSummary strong {
-  color: #121c27;
-  font-size: 1.45rem;
-  line-height: 1;
-}
-
-.sportSummary span {
-  margin-top: 8px;
-  color: #657282;
-  font-size: 0.74rem;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
 .interviewLayout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1122,7 +1001,6 @@
   .dashboardGrid,
   .habitsGrid,
   .weightLayout,
-  .sportSummary,
   .interviewLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1153,7 +1031,6 @@
 
   .dashboardGrid,
   .weightLayout,
-  .sportSummary,
   .interviewLayout,
   .courseSummary {
     grid-template-columns: 1fr;
@@ -1170,10 +1047,6 @@
   }
 
   .courseGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .sportGrid {
     grid-template-columns: 1fr;
   }
 

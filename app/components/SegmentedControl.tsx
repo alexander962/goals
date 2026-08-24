@@ -11,7 +11,7 @@ type Props<T extends string> = {
   value: T;
   options: SegmentOption<T>[];
   onChange: (value: T) => void;
-  tone?: 'calm' | 'sport' | 'focus';
+  tone?: 'calm' | 'task' | 'focus';
 };
 
 export function SegmentedControl<T extends string>({ value, options, onChange, tone = 'calm' }: Props<T>) {

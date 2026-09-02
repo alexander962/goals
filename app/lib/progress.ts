@@ -15,7 +15,6 @@ export type AppState = {
   taskStatus: Record<string, TaskStatus>;
   courseCompleted: Record<string, boolean>;
   vueCompleted: Record<string, boolean>;
-  nextPizzaCompleted: Record<string, boolean>;
   weightEntries: { date: string; value: number }[];
   habitProgress: Record<string, number>;
   completedGoals: Record<string, boolean>;
@@ -27,7 +26,6 @@ export const emptyState: AppState = {
   taskStatus: {},
   courseCompleted: {},
   vueCompleted: {},
-  nextPizzaCompleted: {},
   weightEntries: [],
   habitProgress: {},
   completedGoals: {},

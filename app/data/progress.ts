@@ -319,6 +319,7 @@ export const taskStages: TaskStage[] = [
     id: 'ts-tasks',
     title: 'Задачи ts-tasks',
     tasks: [
+      '0-typescript-basics-workbook.ts',
       '1-coordinate-tuple.ts',
       '1-first-element-generic.ts',
       '1-format-user.ts',

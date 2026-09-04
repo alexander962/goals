@@ -603,6 +603,71 @@
   color: #df5b7d;
 }
 
+.pizzaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  gap: 10px;
+}
+
+.pizzaStep {
+  display: block;
+}
+
+.pizzaStep input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pizzaStep span {
+  display: grid;
+  grid-template-columns: 20px 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 10px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.55);
+  color: #657282;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pizzaStep span:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 140, 56, 0.28);
+}
+
+.pizzaStep svg {
+  color: rgba(18, 28, 39, 0.22);
+}
+
+.pizzaStep strong {
+  color: #121c27;
+  font-size: 1rem;
+}
+
+.pizzaStep small {
+  min-width: 0;
+  color: #657282;
+  font-size: 0.74rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.pizzaStepDone {
+  border-color: rgba(242, 140, 56, 0.28) !important;
+  background: rgba(242, 140, 56, 0.1) !important;
+}
+
+.pizzaStepDone svg {
+  color: #f28c38;
+}
+
 .weightLayout {
   display: grid;
   grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1fr);

@@ -12,6 +12,7 @@ import {
   Gauge,
   Home,
   PartyPopper,
+  Pizza,
   Plus,
   Repeat2,
   RotateCcw,
@@ -62,12 +63,13 @@ type DashboardStats = {
   interview2: number;
   course: number;
   vue: number;
+  nextPizza: number;
   weight: number;
   habits: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'weight' | 'habits';
+type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -76,8 +78,9 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
-  { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
+  // { id: 'course', label: 'Курс фронтенд', icon: BookOpen }, // временно скрыто
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
+  { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
 ];
@@ -108,6 +111,14 @@ const vueModules = [
   'Заключение',
 ].map((title, index) => ({ id: `vue:${index + 1}`, index: index + 1, title }));
 
+const nextPizzaVideoMinutes = 22 * 60 + 56 + 40 / 60;
+const nextPizzaStepMinutes = 10;
+const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / nextPizzaStepMinutes) }, (_, index) => {
+  const start = index * nextPizzaStepMinutes;
+  const end = Math.min(start + nextPizzaStepMinutes, nextPizzaVideoMinutes);
+  return { id: `next-pizza-10m:${index + 1}`, index: index + 1, start, end };
+});
+
 const weightTarget = 80;
 
 const confidenceOptions = [
@@ -124,8 +135,9 @@ const taskOptions = [
 
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
-  { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' },
+  // { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' }, // временно скрыто
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
+  { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
   { id: 'root-four-habits', title: 'Усвоить и укоренить четыре полезные привычки', source: 'habits' },
 ] as const;
@@ -159,6 +171,19 @@ function parseSavedState(raw: string | null): AppState | null {
 function vuePercent(state: AppState) {
   const completed = vueModules.filter((module) => state.vueCompleted[module.id]).length;
   return Math.round((completed / vueModules.length) * 100);
+}
+
+function formatVideoTime(minutesValue: number) {
+  const totalSeconds = Math.round(minutesValue * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+}
+
+function nextPizzaPercent(state: AppState) {
+  const completed = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
+  return Math.round((completed / nextPizzaSteps.length) * 100);
 }
 
 function habitsTotalPercent(state: AppState) {
@@ -222,6 +247,7 @@ export default function HomePage() {
     const interview2 = average([interview2Theory, interview2Tasks]);
     const course = courseTotalPercent(courseModules, state);
     const vue = vuePercent(state);
+    const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const habits = habitsTotalPercent(state);
     return {
@@ -233,9 +259,10 @@ export default function HomePage() {
       interview2,
       course,
       vue,
+      nextPizza,
       weight,
       habits,
-      total: average([interview, interview2, course, weight, habits]),
+      total: average([interview, interview2, nextPizza, weight, habits]),
     };
   }, [state]);
 
@@ -272,6 +299,13 @@ export default function HomePage() {
 
   const setVueModule = (id: string, checked: boolean) => {
     setState((current) => ({ ...current, vueCompleted: { ...current.vueCompleted, [id]: checked } }));
+  };
+
+  const setNextPizzaStep = (id: string, checked: boolean) => {
+    setState((current) => ({
+      ...current,
+      nextPizzaCompleted: { ...current.nextPizzaCompleted, [id]: checked },
+    }));
   };
 
   const addWeightEntry = (value: number) => {
@@ -356,8 +390,9 @@ export default function HomePage() {
 
       <section className={styles.content}>
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
-        {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />}
+        {/* {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />} */}
         {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
+        {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
         {page === 'habits' && (
           <HabitsPage
@@ -390,8 +425,9 @@ export default function HomePage() {
 }
 
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
-  if (source === 'interview') return stats.interview;
-  if (source === 'course') return stats.course;
+  if (source === 'interview') return average([stats.interview, stats.interview2]);
+  // if (source === 'course') return stats.course; // временно скрыто
+  if (source === 'nextPizza') return stats.nextPizza;
   if (source === 'weight') return stats.weight;
   if (source === 'habits') return stats.habits;
   return 0;
@@ -417,8 +453,9 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
-    { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
+    // { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen }, // временно скрыто
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
+    { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
@@ -439,7 +476,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованиям, курсу, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованиям, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -652,6 +689,75 @@ function VuePage({
           );
         })}
       </div>
+    </motion.div>
+  );
+}
+
+function NextPizzaPage({
+  state,
+  stats,
+  setNextPizzaStep,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setNextPizzaStep: (id: string, checked: boolean) => void;
+}) {
+  const completedSteps = nextPizzaSteps.filter((step) => state.nextPizzaCompleted[step.id]).length;
+  const completedMinutes = nextPizzaSteps.reduce(
+    (sum, step) => sum + (state.nextPizzaCompleted[step.id] ? step.end - step.start : 0),
+    0,
+  );
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Fullstack clone"
+        title="Приложение Next Pizza"
+        description="Отмечай каждый закрытый 10-минутный отрезок видео. Из пройденных этапов автоматически рассчитывается общий прогресс приложения."
+      >
+        <ProgressRing value={stats.nextPizza} size={154} color="#f28c38" label="pizza" />
+      </SectionHeader>
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedSteps}</strong>
+          <span>этапов закрыто</span>
+        </div>
+        <div>
+          <strong>{nextPizzaSteps.length}</strong>
+          <span>этапов всего</span>
+        </div>
+        <div>
+          <strong>{formatVideoTime(completedMinutes)}</strong>
+          <span>видео разобрано</span>
+        </div>
+      </div>
+      <section className={styles.panel}>
+        <div className={styles.panelTitle}>
+          <h2>Этапы видео</h2>
+          <span>{stats.nextPizza}%</span>
+        </div>
+        <div className={styles.pizzaGrid}>
+          {nextPizzaSteps.map((step) => {
+            const checked = Boolean(state.nextPizzaCompleted[step.id]);
+            return (
+              <label className={styles.pizzaStep} key={step.id}>
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(event) => setNextPizzaStep(step.id, event.target.checked)}
+                />
+                <span className={checked ? styles.pizzaStepDone : ''}>
+                  <CheckCircle2 size={18} />
+                  <strong>{String(step.index).padStart(2, '0')}</strong>
+                  <small>
+                    {formatVideoTime(step.start)} - {formatVideoTime(step.end)}
+                  </small>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      </section>
     </motion.div>
   );
 }

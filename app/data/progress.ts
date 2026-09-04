@@ -15,6 +15,7 @@ export type TheoryItem =
       id: string;
       title: string;
       mode: 'counter';
+      target?: number;
     }
   | {
       id: string;
@@ -320,6 +321,145 @@ export const taskStages: TaskStage[] = [
   //   title: 'Задачи vue-tasks',
   //   tasks: ['task0', 'task1', 'task2', 'task3', 'task4', 'task5', 'task6'],
   // },
+];
+
+export const interview2TheoryStages: TheoryStage[] = [
+  {
+    id: 'interview-2-theory-1',
+    title: '1 этап',
+    items: [
+      {
+        id: 'interview-2-important-questions',
+        title: 'Важные вопросы с собеседований (25 вопросов)',
+        mode: 'counter',
+        target: 25,
+      },
+    ],
+  },
+  {
+    id: 'interview-2-theory-2',
+    title: '2 этап',
+    items: [
+      {
+        id: 'interview-2-familiar-questions',
+        title: 'Вопросы с собеседований, частично знакомые мне (109 вопросов)',
+        mode: 'counter',
+        target: 109,
+      },
+      {
+        id: 'interview-2-new-questions',
+        title: 'Вопросы с собеседований, новые для меня (31 вопрос)',
+        mode: 'counter',
+        target: 31,
+      },
+    ],
+  },
+];
+
+const interview2JsTasks = `tasks-with-oral-answers.js
+1-array-to-object-1.js
+1-binary-tree-value-sum-1.js
+1-closure-loop-2.js
+1-count-with-delay-1.js
+1-descending-order-coercion-sum-1.js
+1-expression-json-1.js
+1-fibonacci-1.js
+1-find-unique-number-times-1.js
+1-fizzbuzz-dry-1.js
+1-ide-search-1.js
+1-monotonic-array-1.js
+1-palindrome-anagram-1.js
+1-pangram-duplicates-1.js
+1-phone-mask-path-parser-1.js
+1-reverse-number-1.js
+1-sleep-delay-1.js
+1-squares-reduce-number-times-1.js
+1-string-case-1.js
+1-string-counting-1.js
+1-valid-brackets-1.js
+1-yes-then-no-1.js
+2-antimeridian-typewriter-1.js
+2-array-polyfills-1.js
+2-array-special-1.js
+2-auth-promises-2.js
+2-booking-calculate-1.js
+2-custom-array-methods-1.js
+2-digit-sort-counting-1.js
+2-event-loop-2.js
+2-fetch-debounce-throttle-2.js
+2-fetch-with-retry-2.js
+2-fibonacci-max-stack-1.js
+2-flat-1.js
+2-function-utils-1.js
+2-group-by-1.js
+2-longest-substring-1.js
+2-math-stack-1.js
+2-matrix-algorithms-1.js
+2-mixed-algorithms-1.js
+2-most-repeated-nested-1.js
+2-number-chain-named-arithmetic-1.js
+2-object-helpers-1.js
+2-promise-combinators-2.js
+2-range-extraction-1.js
+2-recursive-sum-1.js
+2-reorder-quicksort-1.js
+2-replace-quotes-1.js
+2-request-queue-2.js
+2-roman-list-1.js
+2-route-booking-1.js
+2-run-sequence-2.js
+2-set-and-pairs-1.js
+2-sort-evens-only-1.js
+2-sorted-intersection-merge-1.js
+2-stack-queue-pagination-1.js
+2-sum-promises-1.js
+2-sum-search-1.js
+2-time-limit-2.js
+2-top-users-bounding-box-1.js
+2-tree-iterative-directory-1.js
+2-tree-scanner-duplicates-1.js
+2-unique-random-array-1.js
+2-unix-path-time-1.js
+3-all-sequences-city-combinations-1.js
+3-atm-1.js
+3-check-result-2.js
+3-coins-digits-unsorted-subarray-1.js
+3-copy-equal-dictionary-1.js
+3-currency-converter-2.js
+3-events-and-spy-1.js
+3-fetch-partial-parallelize-2.js
+3-grid-string-1.js
+3-median-two-sorted-1.js
+3-message-buffer-connect-render-1.js
+3-parallel-limit-memo-2.js
+3-run-with-concurrency-2.js
+3-viewers-strokes-1.js`.split('\n');
+
+const interview2TsTasks = `1-get-property.ts
+1-number-sign-enum.ts
+1-optional-interface.ts
+1-point-omit.ts
+1-type-guards.ts
+2-custom-utility-types.ts
+2-filtered-object-keys-value.ts
+2-form-fields-global.ts
+2-functionify-and-constraint.ts
+2-generic-hoc.ts
+2-intersections-teacher-virus.ts
+2-mapping-array-element.ts
+2-recursive-json.ts
+3-container-includes-equal-append.ts
+3-generic-object-fetch-query.ts
+3-resolvable-keys-paths.ts`.split('\n');
+
+export const interview2TaskStages: TaskStage[] = [
+  { id: 'interview-2-js-tasks', title: 'Задачи JS', tasks: interview2JsTasks },
+  { id: 'interview-2-ts-tasks', title: 'Задачи TypeScript', tasks: interview2TsTasks },
+  {
+    id: 'interview-2-react-tasks',
+    title: 'Задачи React',
+    tasks: ['task0.md', 'task1.md', 'task2.md', 'task3.md'],
+  },
 ];
 
 export const courseModules: CourseModule[] = [

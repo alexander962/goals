@@ -48,11 +48,12 @@ export function clampPercent(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-export function counterPercent(value?: CounterValue) {
+export function counterPercent(value?: CounterValue, target?: number) {
   if (!value) return 0;
   const total = value.sure + value.medium + value.none;
-  if (!total) return 0;
-  return clampPercent(((value.sure * 100 + value.medium * 60) / (total * 100)) * 100);
+  const denominator = target ?? total;
+  if (!denominator) return 0;
+  return clampPercent((value.sure * 100 + value.medium * 60) / denominator);
 }
 
 export function average(values: number[]) {
@@ -61,16 +62,41 @@ export function average(values: number[]) {
   return clampPercent(filled.reduce((sum, value) => sum + value, 0) / filled.length);
 }
 
-export function theoryItemPercent(stageItemId: string, mode: 'counter' | 'status', state: AppState) {
-  if (mode === 'counter') return counterPercent(state.theoryCounters[stageItemId]);
+export function theoryItemPercent(stageItemId: string, mode: 'counter' | 'status', state: AppState, target?: number) {
+  if (mode === 'counter') return counterPercent(state.theoryCounters[stageItemId], target);
   return confidenceScore[state.theoryStatus[stageItemId] ?? 'none'];
 }
 
 export function theoryStagePercent(stage: TheoryStage, state: AppState) {
-  return average(stage.items.map((item) => theoryItemPercent(item.id, item.mode, state)));
+  const weightedItems = stage.items.filter(
+    (item): item is Extract<TheoryStage['items'][number], { mode: 'counter' }> =>
+      item.mode === 'counter' && Boolean(item.target),
+  );
+  if (weightedItems.length === stage.items.length && weightedItems.length) {
+    const totalQuestions = weightedItems.reduce((sum, item) => sum + (item.target ?? 0), 0);
+    const totalScore = weightedItems.reduce(
+      (sum, item) => sum + theoryItemPercent(item.id, item.mode, state, item.target) * (item.target ?? 0),
+      0,
+    );
+    return clampPercent(totalScore / totalQuestions);
+  }
+  return average(stage.items.map((item) => theoryItemPercent(item.id, item.mode, state, item.mode === 'counter' ? item.target : undefined)));
 }
 
 export function theoryTotalPercent(stages: TheoryStage[], state: AppState) {
+  const items = stages.flatMap((stage) => stage.items);
+  const weightedItems = items.filter(
+    (item): item is Extract<TheoryStage['items'][number], { mode: 'counter' }> =>
+      item.mode === 'counter' && Boolean(item.target),
+  );
+  if (weightedItems.length === items.length && weightedItems.length) {
+    const totalQuestions = weightedItems.reduce((sum, item) => sum + (item.target ?? 0), 0);
+    const totalScore = weightedItems.reduce(
+      (sum, item) => sum + theoryItemPercent(item.id, item.mode, state, item.target) * (item.target ?? 0),
+      0,
+    );
+    return clampPercent(totalScore / totalQuestions);
+  }
   return average(stages.map((stage) => theoryStagePercent(stage, state)));
 }
 

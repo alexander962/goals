@@ -28,6 +28,8 @@ import { SectionHeader } from './components/SectionHeader';
 import { SegmentedControl } from './components/SegmentedControl';
 import {
   courseModules,
+  interview2TaskStages,
+  interview2TheoryStages,
   taskStages,
   theoryStages,
 } from './data/progress';
@@ -55,6 +57,9 @@ type DashboardStats = {
   theory: number;
   tasks: number;
   interview: number;
+  interview2Theory: number;
+  interview2Tasks: number;
+  interview2: number;
   course: number;
   vue: number;
   weight: number;
@@ -62,7 +67,7 @@ type DashboardStats = {
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'course' | 'vue' | 'weight' | 'habits';
+type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'weight' | 'habits';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -70,6 +75,7 @@ const backupStorageKey = `${storageKey}-backup`;
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
+  { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
   { id: 'course', label: 'Курс фронтенд', icon: BookOpen },
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
   { id: 'weight', label: 'Контроль веса', icon: Scale },
@@ -211,22 +217,45 @@ export default function HomePage() {
     const theory = theoryTotalPercent(theoryStages, state);
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
+    const interview2Theory = theoryTotalPercent(interview2TheoryStages, state);
+    const interview2Tasks = taskTotalPercent(interview2TaskStages, state);
+    const interview2 = average([interview2Theory, interview2Tasks]);
     const course = courseTotalPercent(courseModules, state);
     const vue = vuePercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const habits = habitsTotalPercent(state);
-    return { theory, tasks, interview, course, vue, weight, habits, total: average([interview, course, weight, habits]) };
+    return {
+      theory,
+      tasks,
+      interview,
+      interview2Theory,
+      interview2Tasks,
+      interview2,
+      course,
+      vue,
+      weight,
+      habits,
+      total: average([interview, interview2, course, weight, habits]),
+    };
   }, [state]);
 
-  const setCounter = (id: string, field: keyof CounterValue, value: string) => {
+  const setCounter = (id: string, field: keyof CounterValue, value: string, target?: number) => {
     const numberValue = Math.max(0, Number(value) || 0);
-    setState((current) => ({
-      ...current,
-      theoryCounters: {
-        ...current.theoryCounters,
-        [id]: { ...({ sure: 0, medium: 0, none: 0 } satisfies CounterValue), ...current.theoryCounters[id], [field]: numberValue },
-      },
-    }));
+    setState((current) => {
+      const currentValue = { ...({ sure: 0, medium: 0, none: 0 } satisfies CounterValue), ...current.theoryCounters[id] };
+      const otherTotal = Object.entries(currentValue).reduce(
+        (sum, [key, counter]) => sum + (key === field ? 0 : counter),
+        0,
+      );
+      const nextValue = target ? Math.min(numberValue, Math.max(0, target - otherTotal)) : numberValue;
+      return {
+        ...current,
+        theoryCounters: {
+          ...current.theoryCounters,
+          [id]: { ...currentValue, [field]: nextValue },
+        },
+      };
+    });
   };
 
   const setConfidence = (id: string, value: Confidence) => {
@@ -347,6 +376,14 @@ export default function HomePage() {
             setTask={setTask}
           />
         )}
+        {page === 'interview2' && (
+          <Interview2Page
+            state={state}
+            stats={stats}
+            setCounter={setCounter}
+            setTask={setTask}
+          />
+        )}
       </section>
     </main>
   );
@@ -379,6 +416,7 @@ function Dashboard({
     // { label: 'Теория', value: stats.theory, color: '#6d7dfc', icon: Brain },
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
+    { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
     { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen },
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
@@ -401,7 +439,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, курсу, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованиям, курсу, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -865,6 +903,111 @@ function HabitsPage({
             </motion.article>
           );
         })}
+      </div>
+    </motion.div>
+  );
+}
+
+function Interview2Page({
+  state,
+  stats,
+  setCounter,
+  setTask,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setCounter: (id: string, field: keyof CounterValue, value: string, target?: number) => void;
+  setTask: (id: string, value: TaskStatus) => void;
+}) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Новая подготовка"
+        title="Собеседование 2.0"
+        description="Отмечай уровень знания теории и фактический уровень решения задач. Теория и практика поровну влияют на общий процент."
+      >
+        <ProgressRing value={stats.interview2} size={154} color="#18a999" label="готовность" />
+      </SectionHeader>
+      <div className={styles.interviewLayout}>
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>Теория</h2>
+            <span>{stats.interview2Theory}%</span>
+          </div>
+          <div className={styles.stack}>
+            {interview2TheoryStages.map((stage) => (
+              <article className={styles.stage} key={stage.id}>
+                <div className={styles.stageHead}>
+                  <h3>{stage.title}</h3>
+                  <ProgressRing value={theoryStagePercent(stage, state)} size={78} stroke={8} color="#18a999" />
+                </div>
+                {stage.items.map((item) => (
+                  <div className={styles.theoryRow} key={item.id}>
+                    <div>
+                      <strong>{item.title}</strong>
+                      <span>
+                        {theoryItemPercent(item.id, item.mode, state, item.mode === 'counter' ? item.target : undefined)}%
+                      </span>
+                    </div>
+                    <div className={styles.counters}>
+                      {(['sure', 'medium', 'none'] as (keyof CounterValue)[]).map((field) => (
+                        <label key={field}>
+                          {field === 'sure' ? 'Уверенно' : field === 'medium' ? 'Средне' : 'Никак'}
+                          <input
+                            type="number"
+                            min="0"
+                            max={item.mode === 'counter' ? item.target : undefined}
+                            value={state.theoryCounters[item.id]?.[field] ?? 0}
+                            onChange={(event) =>
+                              setCounter(
+                                item.id,
+                                field,
+                                event.target.value,
+                                item.mode === 'counter' ? item.target : undefined,
+                              )
+                            }
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </article>
+            ))}
+          </div>
+        </section>
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>Задачи</h2>
+            <span>{stats.interview2Tasks}%</span>
+          </div>
+          <div className={styles.stack}>
+            {interview2TaskStages.map((stage) => (
+              <article className={styles.stage} key={stage.id}>
+                <div className={styles.stageHead}>
+                  <h3>{stage.title}</h3>
+                  <ProgressRing value={taskStagePercent(stage, state)} size={78} stroke={8} color="#f28c38" />
+                </div>
+                <div className={styles.taskList}>
+                  {stage.tasks.map((task) => {
+                    const id = `${stage.id}:${task}`;
+                    return (
+                      <div className={styles.taskRow} key={id}>
+                        <strong>{task}</strong>
+                        <SegmentedControl
+                          value={state.taskStatus[id] ?? 'cannot'}
+                          options={taskOptions}
+                          onChange={(value) => setTask(id, value)}
+                          tone="task"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </motion.div>
   );

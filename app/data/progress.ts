@@ -315,6 +315,22 @@ export const taskStages: TaskStage[] = [
       'task40',
     ],
   },
+  {
+    id: 'ts-tasks',
+    title: 'Задачи ts-tasks',
+    tasks: [
+      '1-coordinate-tuple.ts',
+      '1-first-element-generic.ts',
+      '1-format-user.ts',
+      '1-object-keyof.ts',
+      '1-order-status.ts',
+      '1-products-total.ts',
+      '1-shape-union.ts',
+      '1-type-guard.ts',
+      '1-update-settings.ts',
+      '1-user-role-enum.ts',
+    ],
+  },
   // Временно скрыто. Вернуть вместе с подготовкой по Vue.
   // {
   //   id: 'vue-tasks',

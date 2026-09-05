@@ -77,10 +77,10 @@ const backupStorageKey = `${storageKey}-backup`;
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
-  { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
+  // { id: 'interview2', label: 'Собеседование 2.0', icon: Brain }, // временно скрыто
   // { id: 'course', label: 'Курс фронтенд', icon: BookOpen }, // временно скрыто
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
-  { id: 'nextPizza', label: 'Next Pizza', icon: Pizza },
+  // { id: 'nextPizza', label: 'Next Pizza', icon: Pizza }, // временно скрыто
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
 ];
@@ -137,7 +137,7 @@ const dashboardGoals = [
   { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
   // { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' }, // временно скрыто
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
-  { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' },
+  // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
   { id: 'root-four-habits', title: 'Усвоить и укоренить четыре полезные привычки', source: 'habits' },
 ] as const;
@@ -262,7 +262,7 @@ export default function HomePage() {
       nextPizza,
       weight,
       habits,
-      total: average([interview, interview2, nextPizza, weight, habits]),
+      total: average([interview, weight, habits]),
     };
   }, [state]);
 
@@ -392,7 +392,7 @@ export default function HomePage() {
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
         {/* {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />} */}
         {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
-        {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />}
+        {/* {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />} */}
         {page === 'weight' && <WeightPage state={state} stats={stats} addWeightEntry={addWeightEntry} />}
         {page === 'habits' && (
           <HabitsPage
@@ -411,23 +411,23 @@ export default function HomePage() {
             setTask={setTask}
           />
         )}
-        {page === 'interview2' && (
+        {/* {page === 'interview2' && (
           <Interview2Page
             state={state}
             stats={stats}
             setCounter={setCounter}
             setTask={setTask}
           />
-        )}
+        )} */}
       </section>
     </main>
   );
 }
 
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
-  if (source === 'interview') return average([stats.interview, stats.interview2]);
+  if (source === 'interview') return stats.interview;
   // if (source === 'course') return stats.course; // временно скрыто
-  if (source === 'nextPizza') return stats.nextPizza;
+  // if (source === 'nextPizza') return stats.nextPizza; // временно скрыто
   if (source === 'weight') return stats.weight;
   if (source === 'habits') return stats.habits;
   return 0;
@@ -452,10 +452,10 @@ function Dashboard({
     // { label: 'Теория', value: stats.theory, color: '#6d7dfc', icon: Brain },
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
-    { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
+    // { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain }, // временно скрыто
     // { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen }, // временно скрыто
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
-    { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza },
+    // { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza }, // временно скрыто
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
@@ -476,7 +476,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованиям, приложению Next Pizza, весу и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, контролю веса и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>

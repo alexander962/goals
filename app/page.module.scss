@@ -670,7 +670,7 @@
 
 .weightLayout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 18px;
   align-items: start;
 }
@@ -801,14 +801,14 @@
 
 .weightPointValue {
   fill: #fff;
-  font-size: 0.5rem;
+  font-size: 0.42rem;
   font-weight: 900;
   text-anchor: middle;
 }
 
 .weightPointDate {
   fill: #657282;
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 850;
   text-anchor: middle;
 }
@@ -875,14 +875,14 @@
 
 .habitDays {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 30px);
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, 34px);
+  gap: 7px;
 }
 
 .habitDays button {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 1px solid rgba(18, 28, 39, 0.1);
   border-radius: 6px;
@@ -1000,7 +1000,6 @@
 @media (max-width: 1180px) {
   .dashboardGrid,
   .habitsGrid,
-  .weightLayout,
   .interviewLayout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

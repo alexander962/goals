@@ -91,7 +91,8 @@ const habits = [
   { id: 'no-sweets-flour', title: 'Нет сладкому', accent: '#18a999' },
   { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
 ] as const;
-const habitDays = Array.from({ length: 100 }, (_, index) => index + 1);
+const habitTargetDays = 31;
+const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);
 
 const vueModules = [
   'Введение',
@@ -187,7 +188,7 @@ function nextPizzaPercent(state: AppState) {
 }
 
 function habitsTotalPercent(state: AppState) {
-  return average(habits.map((habit) => Math.min(100, state.habitProgress[habit.id] ?? 0)));
+  return Math.floor(average(habits.map((habit) => (Math.min(habitTargetDays, state.habitProgress[habit.id] ?? 0) / habitTargetDays) * 100)));
 }
 
 export default function HomePage() {
@@ -318,10 +319,10 @@ export default function HomePage() {
 
   const setHabitProgress = (id: string, day: number) => {
     setState((current) => ({
-      ...current,
+        ...current,
       habitProgress: {
         ...current.habitProgress,
-        [id]: Math.max(current.habitProgress[id] ?? 0, Math.min(100, day)),
+        [id]: Math.max(current.habitProgress[id] ?? 0, Math.min(habitTargetDays, day)),
       },
     }));
   };
@@ -777,7 +778,7 @@ function WeightPage({
   const previous = days.at(-2)?.[1];
   const delta = previous === undefined ? 0 : current - previous;
   const start = days[0]?.[1] ?? 0;
-  const chartWidth = Math.max(420, days.length * 88);
+  const chartWidth = Math.max(900, days.length * 72);
   const chartHeight = 240;
   const chartTop = 28;
   const chartBottom = 48;
@@ -903,7 +904,7 @@ function WeightPage({
                 />
                 {points.map((point) => (
                   <g key={point.date}>
-                    <circle cx={point.x} cy={point.y} r="14" fill="#18a999" />
+                    <circle cx={point.x} cy={point.y} r="10" fill="#18a999" />
                     <text className={styles.weightPointValue} x={point.x} y={point.y + 3}>
                       {point.value}
                     </text>
@@ -937,12 +938,12 @@ function HabitsPage({
   setHabitProgress: (id: string, day: number) => void;
   resetHabitProgress: (id: string) => void;
 }) {
-  const completedHabits = habits.filter((habit) => (state.habitProgress[habit.id] ?? 0) >= 100).length;
+  const completedHabits = habits.filter((habit) => (state.habitProgress[habit.id] ?? 0) >= habitTargetDays).length;
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
       <SectionHeader
-        eyebrow="100 дней"
+        eyebrow={`${habitTargetDays} дней`}
         title="Трекер привычек"
         description="Каждый успешный день отмечай на шкале. Если сорвался или пропустил день — сбрось только нужную привычку и начни её серию заново."
       >
@@ -964,7 +965,7 @@ function HabitsPage({
       </div>
       <div className={styles.habitsGrid}>
         {habits.map((habit, index) => {
-          const currentDay = Math.min(100, state.habitProgress[habit.id] ?? 0);
+          const currentDay = Math.min(habitTargetDays, state.habitProgress[habit.id] ?? 0);
           return (
             <motion.article className={styles.habitCard} key={habit.id} whileHover={{ y: -3 }}>
               <div className={styles.habitHead}>
@@ -975,7 +976,7 @@ function HabitsPage({
                   <small>Текущая серия: {currentDay} дней</small>
                   <h2>{habit.title}</h2>
                 </div>
-                <ProgressRing value={currentDay} size={76} stroke={7} color={habit.accent} />
+                <ProgressRing value={(currentDay / habitTargetDays) * 100} size={76} stroke={7} color={habit.accent} />
               </div>
               <div className={styles.habitDays} aria-label={`Прогресс привычки: ${habit.title}`}>
                 {habitDays.map((day) => (
@@ -993,7 +994,7 @@ function HabitsPage({
                 ))}
               </div>
               <div className={styles.habitFooter}>
-                <span>{currentDay >= 100 ? 'Привычка укоренилась' : `До цели осталось ${100 - currentDay} дней`}</span>
+                <span>{currentDay >= habitTargetDays ? 'Привычка укоренилась' : `До цели осталось ${habitTargetDays - currentDay} дней`}</span>
                 <button
                   type="button"
                   className={styles.habitReset}

@@ -47,7 +47,7 @@ export function ProgressRing({ value, size = 132, stroke = 12, label, color = '#
         />
       </svg>
       <div className={styles.content}>
-        <strong>{value}%</strong>
+        <strong>{Math.floor(value)}%</strong>
         {label ? <span>{label}</span> : null}
       </div>
     </div>

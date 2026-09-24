@@ -90,7 +90,7 @@ const habits = [
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
   { id: 'no-sweets-flour', title: 'Нет сладкому', accent: '#18a999' },
   { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
-  { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
+  { id: 'water-only', title: 'Нет кофе и чаю', accent: '#4c9be8' },
 ] as const;
 const habitTargetDays = 31;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);

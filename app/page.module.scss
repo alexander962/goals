@@ -770,21 +770,28 @@
 
 .weightChart {
   display: block;
-  min-height: 240px;
+  min-height: 320px;
   border: 1px solid rgba(18, 28, 39, 0.08);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.66);
-  overflow-x: auto;
+  overflow: hidden;
 }
 
 .weightLineChart {
   display: block;
-  min-height: 240px;
+  width: 100%;
+  min-height: 320px;
 }
 
 .weightGridLine {
   stroke: rgba(18, 28, 39, 0.07);
-  stroke-width: 2;
+  stroke-width: 1;
+}
+
+.weightHorizontalGridLine {
+  stroke: rgba(18, 28, 39, 0.08);
+  stroke-dasharray: 3 7;
+  stroke-width: 1;
 }
 
 .weightTargetLine {
@@ -800,8 +807,8 @@
 }
 
 .weightPointValue {
-  fill: #fff;
-  font-size: 0.42rem;
+  fill: #18a999;
+  font-size: 0.62rem;
   font-weight: 900;
   text-anchor: middle;
 }
@@ -811,6 +818,11 @@
   font-size: 0.62rem;
   font-weight: 850;
   text-anchor: middle;
+}
+
+.weightPoint {
+  stroke: #fff;
+  stroke-width: 2;
 }
 
 .emptyChart {

@@ -779,12 +779,12 @@ function WeightPage({
   const previous = days.at(-2)?.[1];
   const delta = previous === undefined ? 0 : current - previous;
   const start = days[0]?.[1] ?? 0;
-  const chartWidth = Math.max(900, days.length * 72);
-  const chartHeight = 240;
+  const chartWidth = 2000;
+  const chartHeight = 320;
   const chartTop = 28;
   const chartBottom = 48;
-  const chartLeft = 38;
-  const chartRight = 28;
+  const chartLeft = 42;
+  const chartRight = 30;
   const values = days.map(([, value]) => value);
   const minValue = Math.min(weightTarget, ...values);
   const maxValue = Math.max(weightTarget, ...values);
@@ -801,6 +801,8 @@ function WeightPage({
   });
   const linePoints = points.map((point) => `${point.x},${point.y}`).join(' ');
   const targetY = chartTop + ((chartMax - weightTarget) / chartRange) * (chartHeight - chartTop - chartBottom);
+  const labelEvery = Math.max(1, Math.ceil(days.length / 8));
+  const showValue = days.length <= 12;
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
@@ -871,10 +873,23 @@ function WeightPage({
             {days.length ? (
               <svg
                 className={styles.weightLineChart}
-                style={{ width: `${chartWidth}px`, minWidth: '100%' }}
+                style={{ width: '100%', height: '320px' }}
                 viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                 role="img"
               >
+                {Array.from({ length: 5 }, (_, index) => {
+                  const y = chartTop + (index / 4) * (chartHeight - chartTop - chartBottom);
+                  return (
+                  <line
+                    className={styles.weightHorizontalGridLine}
+                    key={`horizontal-grid-${index}`}
+                    x1={chartLeft}
+                    x2={chartWidth - chartRight}
+                    y1={y}
+                    y2={y}
+                  />
+                  );
+                })}
                 {points.map((point) => (
                   <line
                     className={styles.weightGridLine}
@@ -903,15 +918,20 @@ function WeightPage({
                   strokeLinejoin="round"
                   strokeWidth="3"
                 />
-                {points.map((point) => (
+                {points.map((point, index) => (
                   <g key={point.date}>
-                    <circle cx={point.x} cy={point.y} r="10" fill="#18a999" />
-                    <text className={styles.weightPointValue} x={point.x} y={point.y + 3}>
-                      {point.value}
-                    </text>
-                    <text className={styles.weightPointDate} x={point.x} y={chartHeight - 10}>
-                      {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
-                    </text>
+                    <title>{`${point.date}: ${point.value.toFixed(1)} кг`}</title>
+                    <circle className={styles.weightPoint} cx={point.x} cy={point.y} r={days.length > 30 ? 4 : 7} fill="#18a999" />
+                    {showValue ? (
+                      <text className={styles.weightPointValue} x={point.x} y={point.y - 12}>
+                        {point.value.toFixed(1)}
+                      </text>
+                    ) : null}
+                    {index % labelEvery === 0 || index === points.length - 1 ? (
+                      <text className={styles.weightPointDate} x={point.x} y={chartHeight - 12}>
+                        {new Date(`${point.date}T00:00:00`).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}
+                      </text>
+                    ) : null}
                   </g>
                 ))}
               </svg>

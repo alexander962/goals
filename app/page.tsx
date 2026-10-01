@@ -92,7 +92,7 @@ const habits = [
   { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
   { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
 ] as const;
-const habitTargetDays = 31;
+const habitTargetDays = 30;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);
 
 const vueModules = [

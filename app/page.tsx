@@ -89,7 +89,7 @@ const habits = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
   { id: 'no-sweets-flour', title: 'Нет сладкому и мучному', accent: '#18a999' },
-  { id: 'one-meal-a-day', title: 'Питание 1 раз в день(стараться вечером)', accent: '#c99a43' },
+  { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
   { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
 ] as const;
 const habitTargetDays = 31;

@@ -87,11 +87,10 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
 
 const habits = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
-  { id: 'safe-content', title: 'Нет просмотру вредного контента самому(из развлечений vr2)', accent: '#df5b7d' },
+  { id: 'safe-content', title: 'Нет просмотру вредного контента самому(сериал в обед)', accent: '#df5b7d' },
   { id: 'no-sweets-flour', title: 'Нет сладкому и мучному(кроме хлеба в обед)', accent: '#18a999' },
-  { id: 'one-meal-a-day', title: 'Питание 1 раз в день(стараться после 16 часов)', accent: '#c99a43' },
-  { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
-  { id: 'contrast-shower-morning', title: 'Контрастный душ утром', accent: '#8b6de8' },
+  { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
+  { id: 'water-only', title: 'Пить только воду(1 кофе в день)', accent: '#4c9be8' },
 ] as const;
 const habitTargetDays = 21;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);
@@ -142,7 +141,7 @@ const dashboardGoals = [
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'root-four-habits', title: 'Усвоить и укоренить шесть полезных привычек', source: 'habits' },
+  { id: 'root-four-habits', title: 'Усвоить и укоренить пять полезных привычек', source: 'habits' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {

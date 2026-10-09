@@ -87,7 +87,8 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
 
 const habits = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
-  { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' }
+  { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
+  { id: 'safe-content', title: 'Еда на кухне без просмотра чего либо после 15 часов', accent: '#df5b7d' }
 ] as const;
 const habitTargetDays = 21;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);

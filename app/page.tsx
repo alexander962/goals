@@ -87,10 +87,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
 
 const habits = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
-  { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
-  { id: 'no-sweets-flour', title: 'Нет сладкому и мучному(кроме хлеба в обед)', accent: '#18a999' },
-  { id: 'one-meal-a-day', title: 'Питание 1 раз в день', accent: '#c99a43' },
-  { id: 'water-only', title: 'Пить только воду(1 кофе в день)', accent: '#4c9be8' },
+  { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' }
 ] as const;
 const habitTargetDays = 21;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);

@@ -96,7 +96,7 @@ const habits: Habit[] = [
   { id: 'abstinence', title: 'Нет порно и всему с этим связанному', accent: '#6d7dfc' },
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
   { id: 'food-without-content', title: 'Еда на кухне без просмотра чего-либо', accent: '#f28c38' },
-  { id: 'food-without-content', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
+  { id: 'food-number', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
   { id: 'water-only', title: 'Пить только воду(1 кофе с утра)', accent: '#4c9be8' },
   {
     id: 'daily-routine',

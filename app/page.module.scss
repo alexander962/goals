@@ -885,6 +885,25 @@
   text-transform: uppercase;
 }
 
+.habitDetails {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+  padding: 14px 16px 14px 34px;
+  border: 1px solid rgba(24, 169, 153, 0.14);
+  border-radius: 8px;
+  background: rgba(24, 169, 153, 0.06);
+  color: #536170;
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.habitDetails li::marker {
+  color: #18a999;
+}
+
 .habitDays {
   display: grid;
   grid-template-columns: repeat(auto-fill, 34px);

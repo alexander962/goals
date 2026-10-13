@@ -85,11 +85,33 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
 ];
 
-const habits = [
+type Habit = {
+  id: string;
+  title: string;
+  accent: string;
+  details?: string[];
+};
+
+const habits: Habit[] = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
-  { id: 'safe-content', title: 'Еда на кухне без просмотра чего либо', accent: '#df5b7d' }
-] as const;
+  { id: 'food-without-content', title: 'Еда на кухне без просмотра чего-либо', accent: '#f28c38' },
+  { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
+  {
+    id: 'daily-routine',
+    title: 'Жить по распорядку',
+    accent: '#18a999',
+    details: [
+      'Утро — 1,5 ч: теория + задачи + проект',
+      'Зарядка с гирей',
+      'Перед обедом — 1,5 ч: отклики',
+      'После обеда — 1,5 ч: теория + задачи + проект',
+      'Тренировка',
+      'После тренировки — 1,5 ч: теория + задачи + проект',
+      'Вечер — 1 ч: свои задачи + своя теория; 1 ч: «Легенда»',
+    ],
+  },
+];
 const habitTargetDays = 21;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);
 
@@ -997,6 +1019,13 @@ function HabitsPage({
                 </div>
                 <ProgressRing value={(currentDay / habitTargetDays) * 100} size={76} stroke={7} color={habit.accent} />
               </div>
+              {habit.details ? (
+                <ul className={styles.habitDetails}>
+                  {habit.details.map((detail) => (
+                    <li key={detail}>{detail}</li>
+                  ))}
+                </ul>
+              ) : null}
               <div className={styles.habitDays} aria-label={`Прогресс привычки: ${habit.title}`}>
                 {habitDays.map((day) => (
                   <button

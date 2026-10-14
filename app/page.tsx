@@ -97,21 +97,8 @@ const habits: Habit[] = [
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
   { id: 'food-without-content', title: 'Еда на кухне без просмотра чего-либо', accent: '#f28c38' },
   { id: 'food-number', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
-  { id: 'water-only', title: 'Пить только воду(1 кофе с утра)', accent: '#4c9be8' },
-  {
-    id: 'daily-routine',
-    title: 'Жить по распорядку',
-    accent: '#18a999',
-    details: [
-      'Утро — 1ч: свои задачи + своя теория',
-      'Прогулка + Зарядка с гирей',
-      'Перед обедом — 1,5 ч: отклики или теория + задачи + проект',
-      'После обеда — 1,5 ч: теория + задачи + проект',
-      'Тренировка',
-      'После тренировки — 1,5 ч: теория + задачи + проект',
-      'Вечер — 1.5 ч: «Легенда»',
-    ],
-  },
+  { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
+  { id: 'daily-routine', title: 'Выполнять планы на день', accent: '#18a999', },
 ];
 const habitTargetDays = 7;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);

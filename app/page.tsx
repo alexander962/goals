@@ -148,8 +148,8 @@ const dashboardGoals = [
   // { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' }, // временно скрыто
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
-  { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'root-four-habits', title: 'Усвоить и укоренить пять полезных привычек', source: 'habits' },
+  { id: 'weight-80', title: 'Скинуть вес до 99 кг - 1 этап', source: 'weight' },
+  { id: 'root-four-habits', title: 'Усвоить и укоренить шесть полезных привычек - 1 этап', source: 'habits' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {

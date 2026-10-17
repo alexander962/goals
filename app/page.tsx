@@ -5,6 +5,7 @@ import type { ElementType } from 'react';
 import {
   BookOpen,
   Brain,
+  Check,
   CheckCircle2,
   Code2,
   Download,
@@ -12,6 +13,7 @@ import {
   Gauge,
   Home,
   PartyPopper,
+  Pencil,
   Pizza,
   Plus,
   Repeat2,
@@ -22,6 +24,8 @@ import {
   Timer,
   Trophy,
   Upload,
+  Wallet,
+  X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ProgressRing } from './components/ProgressRing';
@@ -66,10 +70,11 @@ type DashboardStats = {
   nextPizza: number;
   weight: number;
   habits: number;
+  earnings: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits';
+type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'earnings';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -83,6 +88,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   // { id: 'nextPizza', label: 'Next Pizza', icon: Pizza }, // временно скрыто
   { id: 'weight', label: 'Контроль веса', icon: Scale },
   { id: 'habits', label: 'Привычки', icon: Repeat2 },
+  { id: 'earnings', label: 'Заработок', icon: Wallet },
 ];
 
 type Habit = {
@@ -130,6 +136,7 @@ const nextPizzaSteps = Array.from({ length: Math.ceil(nextPizzaVideoMinutes / ne
 });
 
 const weightTarget = 80;
+const monthlyEarningTarget = 60_000;
 
 const confidenceOptions = [
   { value: 'sure', label: 'Уверенно' },
@@ -150,6 +157,7 @@ const dashboardGoals = [
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
   { id: 'weight-80', title: 'Скинуть вес до 99 кг - 1 этап', source: 'weight' },
   { id: 'root-four-habits', title: 'Усвоить и укоренить шесть полезных привычек - 1 этап', source: 'habits' },
+  { id: 'stable-income-60k', title: 'Выйти на стабильные 60 000 ₽ в месяц', source: 'earnings' },
 ] as const;
 
 function getLocalDateKey(date = new Date()) {
@@ -198,6 +206,16 @@ function nextPizzaPercent(state: AppState) {
 
 function habitsTotalPercent(state: AppState) {
   return Math.floor(average(habits.map((habit) => (Math.min(habitTargetDays, state.habitProgress[habit.id] ?? 0) / habitTargetDays) * 100)));
+}
+
+function getMonthKey(date = new Date()) {
+  return getLocalDateKey(date).slice(0, 7);
+}
+
+function earningsForMonth(entries: AppState['earningEntries'], month: string) {
+  return entries
+    .filter((entry) => entry.date.startsWith(month) && Number.isFinite(entry.value))
+    .reduce((sum, entry) => sum + entry.value, 0);
 }
 
 export default function HomePage() {
@@ -260,6 +278,8 @@ export default function HomePage() {
     const nextPizza = nextPizzaPercent(state);
     const weight = weightProgressPercent(state.weightEntries, weightTarget);
     const habits = habitsTotalPercent(state);
+    const currentMonthEarnings = earningsForMonth(state.earningEntries, getMonthKey());
+    const earnings = Math.min(100, Math.floor((currentMonthEarnings / monthlyEarningTarget) * 100));
     return {
       theory,
       tasks,
@@ -272,7 +292,8 @@ export default function HomePage() {
       nextPizza,
       weight,
       habits,
-      total: average([interview, weight, habits]),
+      earnings,
+      total: average([interview, weight, habits, earnings]),
     };
   }, [state]);
 
@@ -323,6 +344,17 @@ export default function HomePage() {
     setState((current) => ({
       ...current,
       weightEntries: [...current.weightEntries, { date: getLocalDateKey(), value: Number(value.toFixed(1)) }],
+    }));
+  };
+
+  const setEarningEntry = (date: string, value: number) => {
+    if (!date || !Number.isFinite(value) || value < 0) return;
+    setState((current) => ({
+      ...current,
+      earningEntries: [
+        ...current.earningEntries.filter((entry) => entry.date !== date),
+        { date, value: Math.round(value) },
+      ].sort((a, b) => a.date.localeCompare(b.date)),
     }));
   };
 
@@ -412,6 +444,9 @@ export default function HomePage() {
             resetHabitProgress={resetHabitProgress}
           />
         )}
+        {page === 'earnings' && (
+          <EarningsPage state={state} stats={stats} setEarningEntry={setEarningEntry} />
+        )}
         {page === 'interview' && (
           <InterviewPage
             state={state}
@@ -440,6 +475,7 @@ function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], sta
   // if (source === 'nextPizza') return stats.nextPizza; // временно скрыто
   if (source === 'weight') return stats.weight;
   if (source === 'habits') return stats.habits;
+  if (source === 'earnings') return stats.earnings;
   return 0;
 }
 
@@ -468,6 +504,7 @@ function Dashboard({
     // { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza }, // временно скрыто
     { label: 'Вес', value: stats.weight, color: '#18a999', icon: Scale },
     { label: 'Привычки', value: stats.habits, color: '#6d7dfc', icon: Repeat2 },
+    { label: 'Заработок', value: stats.earnings, color: '#c99a43', icon: Wallet },
   ].sort((a, b) => Number(a.value >= 100) - Number(b.value >= 100));
   const goals = dashboardGoals
     .map((goal) => ({
@@ -486,7 +523,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, контролю веса и привычкам. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, контролю веса, привычкам и заработку. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -948,6 +985,212 @@ function WeightPage({
                 <Scale size={24} />
                 <span>Нет замеров</span>
               </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </motion.div>
+  );
+}
+
+function EarningsPage({
+  state,
+  stats,
+  setEarningEntry,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setEarningEntry: (date: string, value: number) => void;
+}) {
+  const currentMonth = getMonthKey();
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [draftDate, setDraftDate] = useState(getLocalDateKey());
+  const [draftValue, setDraftValue] = useState('');
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState('');
+
+  const dailyEntries = Object.entries(
+    state.earningEntries.reduce<Record<string, number>>((result, entry) => {
+      if (entry.date && Number.isFinite(entry.value)) result[entry.date] = entry.value;
+      return result;
+    }, {}),
+  ).sort(([left], [right]) => right.localeCompare(left));
+
+  const availableMonths = Array.from(new Set([currentMonth, ...dailyEntries.map(([date]) => date.slice(0, 7))])).sort(
+    (left, right) => right.localeCompare(left),
+  );
+  const monthlyTotals = availableMonths.map((month) => ({
+    month,
+    total: dailyEntries
+      .filter(([date]) => date.startsWith(month))
+      .reduce((sum, [, value]) => sum + value, 0),
+  }));
+  const selectedEntries = dailyEntries.filter(([date]) => date.startsWith(selectedMonth));
+  const selectedTotal = monthlyTotals.find((item) => item.month === selectedMonth)?.total ?? 0;
+  const currentTotal = monthlyTotals.find((item) => item.month === currentMonth)?.total ?? 0;
+  const bestMonth = monthlyTotals.reduce((best, item) => (item.total > best.total ? item : best), { month: '', total: 0 });
+  const money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  const monthLabel = (month: string) =>
+    new Date(`${month}-01T00:00:00`).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Финансовая цель"
+        title="Заработок за месяц"
+        description="Записывай заработок по дням, редактируй суммы и сравнивай месяцы. Прогресс считается относительно стабильных 60 000 ₽ в текущем месяце."
+      >
+        <ProgressRing value={stats.earnings} size={154} color="#c99a43" label="60 000 ₽" />
+      </SectionHeader>
+
+      <div className={styles.earningSummary}>
+        <div>
+          <strong>{money.format(currentTotal)} ₽</strong>
+          <span>в текущем месяце</span>
+        </div>
+        <div>
+          <strong>{money.format(Math.max(0, monthlyEarningTarget - currentTotal))} ₽</strong>
+          <span>осталось до цели</span>
+        </div>
+        <div>
+          <strong>{bestMonth.total ? `${money.format(bestMonth.total)} ₽` : '—'}</strong>
+          <span>{bestMonth.month ? `лучший месяц · ${monthLabel(bestMonth.month)}` : 'лучший месяц'}</span>
+        </div>
+      </div>
+
+      <section className={`${styles.panel} ${styles.earningEntryPanel}`}>
+        <div className={styles.panelTitle}>
+          <h2>Добавить заработок</h2>
+          <span>{stats.earnings}%</span>
+        </div>
+        <form
+          className={styles.earningForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            const value = Number(draftValue.replace(',', '.'));
+            if (!draftDate || !Number.isFinite(value) || value < 0) return;
+            setEarningEntry(draftDate, value);
+            setSelectedMonth(draftDate.slice(0, 7));
+            setDraftValue('');
+          }}
+        >
+          <label>
+            Дата
+            <input type="date" value={draftDate} onChange={(event) => setDraftDate(event.target.value)} />
+          </label>
+          <label>
+            Сумма, ₽
+            <input
+              type="number"
+              min="0"
+              step="1"
+              inputMode="numeric"
+              placeholder="например 3500"
+              value={draftValue}
+              onChange={(event) => setDraftValue(event.target.value)}
+            />
+          </label>
+          <button type="submit">
+            <Plus size={18} />
+            Сохранить
+          </button>
+        </form>
+      </section>
+
+      <div className={styles.earningsLayout}>
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>По месяцам</h2>
+            <span>{monthlyTotals.length}</span>
+          </div>
+          <div className={styles.monthList}>
+            {monthlyTotals.map((item) => {
+              const percent = Math.min(100, Math.floor((item.total / monthlyEarningTarget) * 100));
+              return (
+                <button
+                  type="button"
+                  className={`${styles.monthCard} ${selectedMonth === item.month ? styles.monthCardActive : ''}`}
+                  key={item.month}
+                  onClick={() => setSelectedMonth(item.month)}
+                >
+                  <span>
+                    <strong>{monthLabel(item.month)}</strong>
+                    <small>{percent}% от цели</small>
+                  </span>
+                  <b>{money.format(item.total)} ₽</b>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className={styles.panel}>
+          <div className={styles.panelTitle}>
+            <h2>{monthLabel(selectedMonth)}</h2>
+            <span>{money.format(selectedTotal)} ₽</span>
+          </div>
+          <div className={styles.earningDays}>
+            {selectedEntries.length ? (
+              selectedEntries.map(([date, value]) => {
+                const editing = editingDate === date;
+                return (
+                  <div className={styles.earningDayRow} key={date}>
+                    <time dateTime={date}>
+                      {new Date(`${date}T00:00:00`).toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </time>
+                    {editing ? (
+                      <input
+                        autoFocus
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={editingValue}
+                        onChange={(event) => setEditingValue(event.target.value)}
+                      />
+                    ) : (
+                      <strong>{money.format(value)} ₽</strong>
+                    )}
+                    <div className={styles.earningActions}>
+                      {editing ? (
+                        <>
+                          <button
+                            type="button"
+                            aria-label="Сохранить изменение"
+                            onClick={() => {
+                              const nextValue = Number(editingValue.replace(',', '.'));
+                              if (!Number.isFinite(nextValue) || nextValue < 0) return;
+                              setEarningEntry(date, nextValue);
+                              setEditingDate(null);
+                            }}
+                          >
+                            <Check size={17} />
+                          </button>
+                          <button type="button" aria-label="Отменить изменение" onClick={() => setEditingDate(null)}>
+                            <X size={17} />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-label="Редактировать сумму"
+                          onClick={() => {
+                            setEditingDate(date);
+                            setEditingValue(String(value));
+                          }}
+                        >
+                          <Pencil size={17} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.emptyEarnings}>В этом месяце пока нет записей</div>
             )}
           </div>
         </section>

@@ -17,6 +17,7 @@ export type AppState = {
   vueCompleted: Record<string, boolean>;
   nextPizzaCompleted: Record<string, boolean>;
   weightEntries: { date: string; value: number }[];
+  earningEntries: { date: string; value: number }[];
   habitProgress: Record<string, number>;
   completedGoals: Record<string, boolean>;
 };
@@ -29,6 +30,7 @@ export const emptyState: AppState = {
   vueCompleted: {},
   nextPizzaCompleted: {},
   weightEntries: [],
+  earningEntries: [],
   habitProgress: {},
   completedGoals: {},
 };

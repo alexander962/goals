@@ -94,8 +94,8 @@ type Habit = {
 
 const habits: Habit[] = [
   { id: 'abstinence', title: 'Нет порно и всему с этим связанному', accent: '#6d7dfc' },
-  { id: 'safe-content', title: 'Нет просмотру вредного контента самому(кроме еда - 2 часа)', accent: '#df5b7d' },
-  { id: 'food-number', title: 'Питание 1 раза в день(вечер) без сладкого', accent: '#f28c38' },
+  { id: 'safe-content', title: 'Нет просмотру вредного контента самому', accent: '#df5b7d' },
+  { id: 'food-number', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
   { id: 'water-only', title: 'Пить только воду и цикорий', accent: '#4c9be8' },
   { id: 'daily-routine', title: 'Выполнять планы на день', accent: '#18a999', },
 ];

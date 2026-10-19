@@ -101,6 +101,7 @@ type Habit = {
 const habits: Habit[] = [
   { id: 'abstinence', title: 'Нет порно', accent: '#6d7dfc' },
   { id: 'safe-content', title: 'Нет просмотру вредного контента самому(до зала или до смены)', accent: '#df5b7d' },
+  { id: 'safe-mobile-content', title: 'Нет просмотру коротких видео и двачу полностью', accent: '#df5b7d' },
   { id: 'safe-eat', title: 'Еда на кухне без просмотра чего либо', accent: '#df5b7d' },
   { id: 'food-number', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
   { id: 'water-only', title: 'Пить только воду(кофе перед сменой)', accent: '#4c9be8' },
@@ -156,7 +157,7 @@ const dashboardGoals = [
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
   { id: 'weight-80', title: 'Скинуть вес до 99 кг - 1 этап', source: 'weight' },
-  { id: 'root-four-habits', title: 'Усвоить и укоренить шесть полезных привычек - 1 этап', source: 'habits' },
+  { id: 'root-four-habits', title: 'Усвоить и укоренить 7 полезных привычек - 1 этап', source: 'habits' },
   { id: 'stable-income-60k', title: 'Выйти на стабильные 60 000 ₽ в месяц', source: 'earnings' },
 ] as const;
 

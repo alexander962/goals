@@ -152,7 +152,7 @@ const taskOptions = [
 ] satisfies { value: TaskStatus; label: string }[];
 
 const dashboardGoals = [
-  { id: 'interview-200', title: 'Получить желаемую работу', source: 'interview' },
+  { id: 'interview-200', title: 'Получить работу в it', source: 'interview' },
   // { id: 'senior-course', title: 'Пройти курс продвинутый фронтенд и вырасти до уверенного Senior', source: 'course' }, // временно скрыто
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто

@@ -109,6 +109,7 @@ const habits: Habit[] = [
   { id: 'water-only', title: 'Пить только воду(кофе с утра)', accent: '#4c9be8' },
   { id: 'daily-routine', title: 'Выполнять планы на день', accent: '#18a999', },
 ];
+
 const habitTargetDays = 21;
 const habitDays = Array.from({ length: habitTargetDays }, (_, index) => index + 1);
 

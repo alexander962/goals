@@ -103,12 +103,10 @@ type Habit = {
 };
 
 const habits: Habit[] = [
-  { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
-  { id: 'safe-content', title: 'Нет просмотру вредного контента и играм самому(до зала или до смены)', accent: '#df5b7d' },
-  { id: 'safe-mobile-content', title: 'Нет просмотру коротких видео и двачу полностью', accent: '#df5b7d' },
-  { id: 'safe-eat', title: 'Еда на кухне без просмотра чего либо', accent: '#df5b7d' },
+  { id: 'abstinence', title: 'Нет порно', accent: '#6d7dfc' },
+  { id: 'safe-content', title: 'Нет просмотру ютуба и двача', accent: '#df5b7d' },
   { id: 'food-number', title: 'Питание 2 раза в день без сладкого', accent: '#f28c38' },
-  { id: 'water-only', title: 'Пить только воду(кофе перед сменой)', accent: '#4c9be8' },
+  { id: 'water-only', title: 'Пить только воду(кофе с утра)', accent: '#4c9be8' },
   { id: 'daily-routine', title: 'Выполнять планы на день', accent: '#18a999', },
 ];
 const habitTargetDays = 21;

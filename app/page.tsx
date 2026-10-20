@@ -166,7 +166,7 @@ const dashboardGoals = [
   // { id: 'vue-course', title: 'Пройти курс по Vue', source: 'vue' }, // временно скрыто
   // { id: 'next-pizza-app', title: 'Написать приложение Next Pizza', source: 'nextPizza' }, // временно скрыто
   { id: 'weight-80', title: 'Скинуть вес до 80 кг', source: 'weight' },
-  { id: 'root-four-habits', title: 'Усвоить и укоренить 7 полезных привычек', source: 'habits' },
+  { id: 'root-four-habits', title: 'Усвоить и укоренить 5 полезных привычек', source: 'habits' },
   { id: 'stable-income-60k', title: 'Выйти на стабильные 60 000 ₽ в месяц', source: 'earnings' },
 ] as const;
 

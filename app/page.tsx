@@ -20,6 +20,7 @@ import {
   RotateCcw,
   Save,
   Scale,
+  ScrollText,
   Sparkles,
   Timer,
   Trophy,
@@ -37,6 +38,7 @@ import {
   theoryStages,
 } from './data/progress';
 import { interview2TaskStages, interview2TheoryStages, Interview2Stage } from './data/interview2';
+import { legendStages, LegendStage } from './data/legend';
 import {
   AppState,
   Confidence,
@@ -65,6 +67,7 @@ type DashboardStats = {
   interview2Theory: number;
   interview2Tasks: number;
   interview2: number;
+  legend: number;
   course: number;
   vue: number;
   nextPizza: number;
@@ -74,7 +77,7 @@ type DashboardStats = {
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'interview2' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'earnings';
+type Page = 'dashboard' | 'interview' | 'interview2' | 'legend' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'earnings';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
@@ -83,6 +86,7 @@ const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
+  { id: 'legend', label: 'Легенда', icon: ScrollText },
   // { id: 'course', label: 'Курс фронтенд', icon: BookOpen }, // временно скрыто
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
   // { id: 'nextPizza', label: 'Next Pizza', icon: Pizza }, // временно скрыто
@@ -265,6 +269,28 @@ function interview2TaskTotalPercent(stages: Interview2Stage[], state: AppState) 
   );
 }
 
+function legendItemId(stageId: string, index: number) {
+  return `${stageId}:${index + 1}`;
+}
+
+function legendStageSummary(stage: LegendStage, state: AppState) {
+  const statuses = stage.items.map((_, index) => state.theoryStatus[legendItemId(stage.id, index)] ?? 'none');
+  return {
+    excellent: statuses.filter((status) => status === 'sure').length,
+    good: statuses.filter((status) => status === 'medium').length,
+    weak: statuses.filter((status) => status === 'none').length,
+    percent: average(statuses.map((status) => confidenceScore[status])),
+  };
+}
+
+function legendTotalPercent(state: AppState) {
+  return average(
+    legendStages.flatMap((stage) =>
+      stage.items.map((_, index) => confidenceScore[state.theoryStatus[legendItemId(stage.id, index)] ?? 'none']),
+    ),
+  );
+}
+
 export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
   const [state, setState] = useState<AppState>(emptyState);
@@ -320,6 +346,7 @@ export default function HomePage() {
     const interview2Theory = interview2TotalPercent(interview2TheoryStages, state);
     const interview2Tasks = interview2TaskTotalPercent(interview2TaskStages, state);
     const interview2 = average([interview2Theory, interview2Tasks]);
+    const legend = legendTotalPercent(state);
     const course = courseTotalPercent(courseModules, state);
     const vue = vuePercent(state);
     const nextPizza = nextPizzaPercent(state);
@@ -334,13 +361,14 @@ export default function HomePage() {
       interview2Theory,
       interview2Tasks,
       interview2,
+      legend,
       course,
       vue,
       nextPizza,
       weight,
       habits,
       earnings,
-      total: average([interview, interview2, weight, habits, earnings]),
+      total: average([interview, interview2, legend, weight, habits, earnings]),
     };
   }, [state]);
 
@@ -511,13 +539,16 @@ export default function HomePage() {
             setTask={setTask}
           />
         )}
+        {page === 'legend' && (
+          <LegendPage state={state} stats={stats} setConfidence={setConfidence} />
+        )}
       </section>
     </main>
   );
 }
 
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
-  if (source === 'interview') return average([stats.interview, stats.interview2]);
+  if (source === 'interview') return average([stats.interview, stats.interview2, stats.legend]);
   // if (source === 'course') return stats.course; // временно скрыто
   // if (source === 'nextPizza') return stats.nextPizza; // временно скрыто
   if (source === 'weight') return stats.weight;
@@ -546,6 +577,7 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
+    { label: 'Легенда', value: stats.legend, color: '#c99a43', icon: ScrollText },
     // { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen }, // временно скрыто
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
     // { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza }, // временно скрыто
@@ -570,7 +602,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по двум этапам подготовки к собеседованию, контролю веса, привычкам и заработку. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по подготовке к собеседованию, легенде, контролю веса, привычкам и заработку. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -1334,6 +1366,100 @@ function HabitsPage({
                 </button>
               </div>
             </motion.article>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function LegendPage({
+  state,
+  stats,
+  setConfidence,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setConfidence: (id: string, value: Confidence) => void;
+}) {
+  const [openStages, setOpenStages] = useState<Record<string, boolean>>({ [legendStages[0].id]: true });
+  const totalItems = legendStages.reduce((sum, stage) => sum + stage.items.length, 0);
+  const strongItems = legendStages.reduce((sum, stage) => sum + legendStageSummary(stage, state).excellent, 0);
+  const weakItems = legendStages.reduce((sum, stage) => sum + legendStageSummary(stage, state).weak, 0);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Поиск работы · личная история"
+        title="Легенда"
+        description="Дорожная карта по материалам легенды: от проверки фактов и короткой самопрезентации до защиты проектов, сложных HR-вопросов и полноценного пробного интервью. Оценивай только ответы, которые можешь дать вслух без подсказки."
+      >
+        <ProgressRing value={stats.legend} size={154} color="#c99a43" label="легенда" />
+      </SectionHeader>
+
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{strongItems}</strong>
+          <span>ответов отлично</span>
+        </div>
+        <div>
+          <strong>{totalItems - weakItems}</strong>
+          <span>ответов подготовлено</span>
+        </div>
+        <div>
+          <strong>{totalItems}</strong>
+          <span>контрольных точек</span>
+        </div>
+        <div>
+          <strong>{stats.legend}%</strong>
+          <span>общая готовность</span>
+        </div>
+      </div>
+
+      <div className={styles.legendRoadmap}>
+        {legendStages.map((stage, stageIndex) => {
+          const summary = legendStageSummary(stage, state);
+          return (
+            <details
+              className={styles.legendStage}
+              key={stage.id}
+              open={Boolean(openStages[stage.id])}
+              onToggle={(event) => {
+                const open = event.currentTarget.open;
+                setOpenStages((current) => current[stage.id] === open ? current : { ...current, [stage.id]: open });
+              }}
+            >
+              <summary className={styles.legendStageSummary}>
+                <div className={styles.legendStageNumber}>{String(stageIndex + 1).padStart(2, '0')}</div>
+                <div className={styles.legendStageText}>
+                  <small>{stage.focus}</small>
+                  <h2>{stage.title}</h2>
+                  <p>{stage.description}</p>
+                  <div className={styles.interview2Counts}>
+                    <span className={styles.countGood}>{summary.excellent} отлично</span>
+                    <span className={styles.countMedium}>{summary.good} хорошо</span>
+                    <span className={styles.countBad}>{summary.weak} плохо</span>
+                  </div>
+                </div>
+                <ProgressRing value={summary.percent} size={78} stroke={8} color="#c99a43" />
+              </summary>
+              <div className={styles.legendItems}>
+                {stage.items.map((item, index) => {
+                  const id = legendItemId(stage.id, index);
+                  return (
+                    <div className={styles.taskRow} key={id}>
+                      <strong>{item}</strong>
+                      <SegmentedControl
+                        value={state.theoryStatus[id] ?? 'none'}
+                        options={interview2Options}
+                        onChange={(value) => setConfidence(id, value)}
+                        tone="task"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </details>
           );
         })}
       </div>

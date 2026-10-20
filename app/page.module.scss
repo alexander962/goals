@@ -424,6 +424,83 @@
   gap: 12px;
 }
 
+.legendRoadmap {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.legendStage {
+  overflow: hidden;
+  border: 1px solid rgba(18, 28, 39, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 18px 45px rgba(18, 28, 39, 0.055);
+}
+
+.legendStage[open] {
+  border-color: rgba(201, 154, 67, 0.34);
+}
+
+.legendStageSummary {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.legendStageSummary::-webkit-details-marker {
+  display: none;
+}
+
+.legendStageNumber {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(201, 154, 67, 0.13);
+  color: #9b7123;
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.legendStageText {
+  min-width: 0;
+}
+
+.legendStageText small {
+  color: #b17e25;
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.legendStageText h2 {
+  margin: 3px 0 5px;
+  color: #121c27;
+  font-size: 1.1rem;
+}
+
+.legendStageText p {
+  margin: 0;
+  color: #657282;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.legendItems {
+  display: grid;
+  gap: 10px;
+  padding: 0 20px 20px 90px;
+  border-top: 1px solid rgba(18, 28, 39, 0.07);
+  padding-top: 18px;
+}
+
 .theoryRow span {
   color: #657282;
   font-size: 0.78rem;
@@ -1347,6 +1424,25 @@
   .stageHead {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .legendStageSummary {
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: start;
+    padding: 16px;
+  }
+
+  .legendStageNumber {
+    width: 42px;
+    height: 42px;
+  }
+
+  .legendStageSummary > :last-child {
+    grid-column: 2;
+  }
+
+  .legendItems {
+    padding: 16px;
   }
 
   .goalRow {

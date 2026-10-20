@@ -33,11 +33,10 @@ import { SectionHeader } from './components/SectionHeader';
 import { SegmentedControl } from './components/SegmentedControl';
 import {
   courseModules,
-  interview2TaskStages,
-  interview2TheoryStages,
   taskStages,
   theoryStages,
 } from './data/progress';
+import { interview2TaskStages, interview2TheoryStages, Interview2Stage } from './data/interview2';
 import {
   AppState,
   Confidence,
@@ -49,6 +48,7 @@ import {
   courseTotalPercent,
   emptyState,
   lastEntryByDay,
+  taskScore,
   taskStagePercent,
   taskTotalPercent,
   theoryItemPercent,
@@ -82,7 +82,7 @@ const backupStorageKey = `${storageKey}-backup`;
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
   { id: 'interview', label: 'Собеседование', icon: Brain },
-  // { id: 'interview2', label: 'Собеседование 2.0', icon: Brain }, // временно скрыто
+  { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
   // { id: 'course', label: 'Курс фронтенд', icon: BookOpen }, // временно скрыто
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
   // { id: 'nextPizza', label: 'Next Pizza', icon: Pizza }, // временно скрыто
@@ -150,6 +150,12 @@ const taskOptions = [
   { value: 'errors', label: 'С ошибками' },
   { value: 'cannot', label: 'Не могу' },
 ] satisfies { value: TaskStatus; label: string }[];
+
+const interview2Options = [
+  { value: 'sure', label: 'Отлично' },
+  { value: 'medium', label: 'Хорошо' },
+  { value: 'none', label: 'Плохо' },
+] satisfies { value: Confidence; label: string }[];
 
 const dashboardGoals = [
   { id: 'interview-200', title: 'Получить работу в it', source: 'interview' },
@@ -219,6 +225,46 @@ function earningsForMonth(entries: AppState['earningEntries'], month: string) {
     .reduce((sum, entry) => sum + entry.value, 0);
 }
 
+function interview2ItemId(stageId: string, index: number) {
+  return `${stageId}:${index + 1}`;
+}
+
+function interview2StageSummary(stage: Interview2Stage, state: AppState) {
+  const statuses = stage.items.map((_, index) => state.theoryStatus[interview2ItemId(stage.id, index)] ?? 'none');
+  return {
+    sure: statuses.filter((status) => status === 'sure').length,
+    medium: statuses.filter((status) => status === 'medium').length,
+    none: statuses.filter((status) => status === 'none').length,
+    percent: average(statuses.map((status) => confidenceScore[status])),
+  };
+}
+
+function interview2TotalPercent(stages: Interview2Stage[], state: AppState) {
+  return average(
+    stages.flatMap((stage) =>
+      stage.items.map((_, index) => confidenceScore[state.theoryStatus[interview2ItemId(stage.id, index)] ?? 'none']),
+    ),
+  );
+}
+
+function interview2TaskStageSummary(stage: Interview2Stage, state: AppState) {
+  const statuses = stage.items.map((_, index) => state.taskStatus[interview2ItemId(stage.id, index)] ?? 'cannot');
+  return {
+    sure: statuses.filter((status) => status === 'solving').length,
+    medium: statuses.filter((status) => status === 'errors').length,
+    none: statuses.filter((status) => status === 'cannot').length,
+    percent: average(statuses.map((status) => taskScore[status])),
+  };
+}
+
+function interview2TaskTotalPercent(stages: Interview2Stage[], state: AppState) {
+  return average(
+    stages.flatMap((stage) =>
+      stage.items.map((_, index) => taskScore[state.taskStatus[interview2ItemId(stage.id, index)] ?? 'cannot']),
+    ),
+  );
+}
+
 export default function HomePage() {
   const [page, setPage] = useState<Page>('dashboard');
   const [state, setState] = useState<AppState>(emptyState);
@@ -271,8 +317,8 @@ export default function HomePage() {
     const theory = theoryTotalPercent(theoryStages, state);
     const tasks = taskTotalPercent(taskStages, state);
     const interview = average([theory, tasks]);
-    const interview2Theory = theoryTotalPercent(interview2TheoryStages, state);
-    const interview2Tasks = taskTotalPercent(interview2TaskStages, state);
+    const interview2Theory = interview2TotalPercent(interview2TheoryStages, state);
+    const interview2Tasks = interview2TaskTotalPercent(interview2TaskStages, state);
     const interview2 = average([interview2Theory, interview2Tasks]);
     const course = courseTotalPercent(courseModules, state);
     const vue = vuePercent(state);
@@ -294,7 +340,7 @@ export default function HomePage() {
       weight,
       habits,
       earnings,
-      total: average([interview, weight, habits, earnings]),
+      total: average([interview, interview2, weight, habits, earnings]),
     };
   }, [state]);
 
@@ -457,21 +503,21 @@ export default function HomePage() {
             setTask={setTask}
           />
         )}
-        {/* {page === 'interview2' && (
+        {page === 'interview2' && (
           <Interview2Page
             state={state}
             stats={stats}
-            setCounter={setCounter}
+            setConfidence={setConfidence}
             setTask={setTask}
           />
-        )} */}
+        )}
       </section>
     </main>
   );
 }
 
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
-  if (source === 'interview') return stats.interview;
+  if (source === 'interview') return average([stats.interview, stats.interview2]);
   // if (source === 'course') return stats.course; // временно скрыто
   // if (source === 'nextPizza') return stats.nextPizza; // временно скрыто
   if (source === 'weight') return stats.weight;
@@ -499,7 +545,7 @@ function Dashboard({
     // { label: 'Теория', value: stats.theory, color: '#6d7dfc', icon: Brain },
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
-    // { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain }, // временно скрыто
+    { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
     // { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen }, // временно скрыто
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
     // { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza }, // временно скрыто
@@ -524,7 +570,7 @@ function Dashboard({
       <SectionHeader
         eyebrow="Общий контроль"
         title="Все цели на одном экране"
-        description="Сводка собирает прогресс по подготовке к собеседованию, контролю веса, привычкам и заработку. Любой ввод на внутренних страницах сразу меняет общий процент."
+        description="Сводка собирает прогресс по двум этапам подготовки к собеседованию, контролю веса, привычкам и заработку. Любой ввод на внутренних страницах сразу меняет общий процент."
       >
         <ProgressRing value={stats.total} size={154} color="#121c27" label="всего" />
       </SectionHeader>
@@ -1298,20 +1344,71 @@ function HabitsPage({
 function Interview2Page({
   state,
   stats,
-  setCounter,
+  setConfidence,
   setTask,
 }: {
   state: AppState;
   stats: DashboardStats;
-  setCounter: (id: string, field: keyof CounterValue, value: string, target?: number) => void;
+  setConfidence: (id: string, value: Confidence) => void;
   setTask: (id: string, value: TaskStatus) => void;
 }) {
+  const renderStage = (stage: Interview2Stage, color: string, kind: 'theory' | 'task') => {
+    const isTheory = kind === 'theory';
+    const summary = isTheory
+      ? interview2StageSummary(stage, state)
+      : interview2TaskStageSummary(stage, state);
+    const countLabels = isTheory
+      ? ['отлично', 'хорошо', 'плохо']
+      : ['решаю', 'с ошибками', 'не могу'];
+
+    return (
+      <article className={styles.stage} key={stage.id}>
+        <div className={styles.interview2StageHead}>
+          <div>
+            <h3>{stage.title}</h3>
+            <div className={styles.interview2Counts} aria-label={countLabels.join(', ')}>
+              <span className={styles.countGood}>{summary.sure} {countLabels[0]}</span>
+              <span className={styles.countMedium}>{summary.medium} {countLabels[1]}</span>
+              <span className={styles.countBad}>{summary.none} {countLabels[2]}</span>
+            </div>
+          </div>
+          <ProgressRing value={summary.percent} size={78} stroke={8} color={color} />
+        </div>
+        <div className={styles.taskList}>
+          {stage.items.map((item, index) => {
+            const id = interview2ItemId(stage.id, index);
+            return (
+              <div className={styles.taskRow} key={id}>
+                <strong>{item}</strong>
+                {isTheory ? (
+                  <SegmentedControl
+                    value={state.theoryStatus[id] ?? 'none'}
+                    options={interview2Options}
+                    onChange={(value) => setConfidence(id, value)}
+                    tone="task"
+                  />
+                ) : (
+                  <SegmentedControl
+                    value={state.taskStatus[id] ?? 'cannot'}
+                    options={taskOptions}
+                    onChange={(value) => setTask(id, value)}
+                    tone="task"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </article>
+    );
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
       <SectionHeader
         eyebrow="Новая подготовка"
         title="Собеседование 2.0"
-        description="Отмечай уровень знания теории и фактический уровень решения задач. Теория и практика поровну влияют на общий процент."
+        description="Каждый вопрос и каждую задачу оценивай отдельно: хорошо, средне или плохо. Так сразу видно слабые места каждого учебного дня."
       >
         <ProgressRing value={stats.interview2} size={154} color="#18a999" label="готовность" />
       </SectionHeader>
@@ -1322,45 +1419,7 @@ function Interview2Page({
             <span>{stats.interview2Theory}%</span>
           </div>
           <div className={styles.stack}>
-            {interview2TheoryStages.map((stage) => (
-              <article className={styles.stage} key={stage.id}>
-                <div className={styles.stageHead}>
-                  <h3>{stage.title}</h3>
-                  <ProgressRing value={theoryStagePercent(stage, state)} size={78} stroke={8} color="#18a999" />
-                </div>
-                {stage.items.map((item) => (
-                  <div className={styles.theoryRow} key={item.id}>
-                    <div>
-                      <strong>{item.title}</strong>
-                      <span>
-                        {theoryItemPercent(item.id, item.mode, state, item.mode === 'counter' ? item.target : undefined)}%
-                      </span>
-                    </div>
-                    <div className={styles.counters}>
-                      {(['sure', 'medium', 'none'] as (keyof CounterValue)[]).map((field) => (
-                        <label key={field}>
-                          {field === 'sure' ? 'Уверенно' : field === 'medium' ? 'Средне' : 'Никак'}
-                          <input
-                            type="number"
-                            min="0"
-                            max={item.mode === 'counter' ? item.target : undefined}
-                            value={state.theoryCounters[item.id]?.[field] ?? 0}
-                            onChange={(event) =>
-                              setCounter(
-                                item.id,
-                                field,
-                                event.target.value,
-                                item.mode === 'counter' ? item.target : undefined,
-                              )
-                            }
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </article>
-            ))}
+            {interview2TheoryStages.map((stage) => renderStage(stage, '#18a999', 'theory'))}
           </div>
         </section>
         <section className={styles.panel}>
@@ -1369,30 +1428,7 @@ function Interview2Page({
             <span>{stats.interview2Tasks}%</span>
           </div>
           <div className={styles.stack}>
-            {interview2TaskStages.map((stage) => (
-              <article className={styles.stage} key={stage.id}>
-                <div className={styles.stageHead}>
-                  <h3>{stage.title}</h3>
-                  <ProgressRing value={taskStagePercent(stage, state)} size={78} stroke={8} color="#f28c38" />
-                </div>
-                <div className={styles.taskList}>
-                  {stage.tasks.map((task) => {
-                    const id = `${stage.id}:${task}`;
-                    return (
-                      <div className={styles.taskRow} key={id}>
-                        <strong>{task}</strong>
-                        <SegmentedControl
-                          value={state.taskStatus[id] ?? 'cannot'}
-                          options={taskOptions}
-                          onChange={(value) => setTask(id, value)}
-                          tone="task"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </article>
-            ))}
+            {interview2TaskStages.map((stage) => renderStage(stage, '#f28c38', 'task'))}
           </div>
         </section>
       </div>

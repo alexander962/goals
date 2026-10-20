@@ -371,6 +371,48 @@
   color: #121c27;
 }
 
+.interview2StageHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 16px;
+}
+
+.interview2StageHead h3 {
+  margin: 0;
+  color: #121c27;
+  line-height: 1.3;
+}
+
+.interview2Counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.interview2Counts span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.countGood {
+  background: rgba(24, 169, 153, 0.1);
+  color: #168f82;
+}
+
+.countMedium {
+  background: rgba(201, 154, 67, 0.12);
+  color: #91691f;
+}
+
+.countBad {
+  background: rgba(223, 91, 125, 0.1);
+  color: #c84368;
+}
+
 .panelTitle span {
   color: #18a999;
   font-size: 1.5rem;

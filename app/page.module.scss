@@ -424,81 +424,315 @@
   gap: 12px;
 }
 
-.legendRoadmap {
+.goalStagesList {
   display: grid;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 18px;
 }
 
-.legendStage {
+.goalStageCard {
   overflow: hidden;
   border: 1px solid rgba(18, 28, 39, 0.09);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.76);
-  box-shadow: 0 18px 45px rgba(18, 28, 39, 0.055);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 50px rgba(18, 28, 39, 0.06);
 }
 
-.legendStage[open] {
-  border-color: rgba(201, 154, 67, 0.34);
+.goalStageCard[open] {
+  border-color: rgba(223, 91, 125, 0.3);
 }
 
-.legendStageSummary {
+.goalStageSummary {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 78px;
+  grid-template-columns: 58px minmax(0, 1fr) 84px;
   align-items: center;
-  gap: 18px;
-  padding: 20px;
+  gap: 20px;
+  padding: 22px;
   cursor: pointer;
   list-style: none;
 }
 
-.legendStageSummary::-webkit-details-marker {
+.goalStageSummary::-webkit-details-marker {
   display: none;
 }
 
-.legendStageNumber {
+.goalStageIndex {
   display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(201, 154, 67, 0.13);
-  color: #9b7123;
-  font-size: 0.9rem;
+  width: 58px;
+  height: 58px;
+  border-radius: 12px;
+  background: rgba(223, 91, 125, 0.11);
+  color: #c84368;
   font-weight: 950;
+  place-items: center;
 }
 
-.legendStageText {
+.goalStageInfo {
+  display: grid;
   min-width: 0;
+  gap: 4px;
 }
 
-.legendStageText small {
-  color: #b17e25;
-  font-size: 0.7rem;
+.goalStageInfo small {
+  color: #c84368;
+  font-size: 0.72rem;
   font-weight: 950;
   letter-spacing: 0.055em;
   text-transform: uppercase;
 }
 
-.legendStageText h2 {
-  margin: 3px 0 5px;
+.goalStageInfo h2 {
+  margin: 0;
   color: #121c27;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 
-.legendStageText p {
+.goalStageInfo p,
+.goalStageInfo span {
   margin: 0;
   color: #657282;
-  font-size: 0.86rem;
-  line-height: 1.55;
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
-.legendItems {
+.goalStageBody {
+  padding: 18px 22px 22px;
+  border-top: 1px solid rgba(18, 28, 39, 0.07);
+}
+
+.goalStageTimeMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 9px;
+  color: #657282;
+  font-size: 0.76rem;
+}
+
+.goalStageTimeMeta strong {
+  color: #c84368;
+}
+
+.goalStageTimeline {
+  height: 7px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(18, 28, 39, 0.07);
+}
+
+.goalStageTimeline span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #df5b7d, #f28c38);
+  transition: width 0.35s ease;
+}
+
+.goalStageGoals {
   display: grid;
   gap: 10px;
-  padding: 0 20px 20px 90px;
+}
+
+.stageGoalRow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(18, 28, 39, 0.08);
+  border-radius: 9px;
+  background: rgba(246, 244, 239, 0.46);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.stageGoalRow:hover {
+  border-color: rgba(223, 91, 125, 0.25);
+}
+
+.stageGoalRow > strong {
+  color: #121c27;
+  line-height: 1.35;
+}
+
+.stageGoalRow > span:last-child {
+  color: #657282;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.stageGoalDone {
+  background: rgba(24, 169, 153, 0.065);
+}
+
+.stageGoalDone > strong {
+  color: rgba(18, 28, 39, 0.58);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.stageGoalDone > span:last-child {
+  color: #168f82;
+}
+
+.goalStageExpired {
+  border-color: rgba(101, 114, 130, 0.2);
+  background: rgba(232, 234, 235, 0.72);
+  box-shadow: none;
+}
+
+.goalStageExpired[open] {
+  border-color: rgba(101, 114, 130, 0.24);
+}
+
+.goalStageExpired .goalStageIndex {
+  background: rgba(101, 114, 130, 0.12);
+  color: #657282;
+}
+
+.goalStageExpired .goalStageInfo small,
+.goalStageExpired .goalStageTimeMeta strong {
+  color: #657282;
+}
+
+.goalStageExpired .goalStageTimeline span {
+  background: #9ba3aa;
+}
+
+.goalStageExpired .stageGoalRow {
+  border-color: rgba(101, 114, 130, 0.1);
+  background: rgba(222, 225, 227, 0.58);
+}
+
+.stageGoalDisabled {
+  cursor: not-allowed;
+}
+
+.stageGoalDisabled:hover {
+  border-color: rgba(101, 114, 130, 0.1);
+}
+
+.stageGoalDisabled > strong,
+.stageGoalDisabled > span:last-child {
+  color: rgba(101, 114, 130, 0.66);
+}
+
+.stageGoalDisabled .goalCheck span {
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.oneCStages {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.oneCStage {
+  overflow: hidden;
+  border: 1px solid rgba(18, 28, 39, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 18px 45px rgba(18, 28, 39, 0.05);
+}
+
+.oneCStage[open] {
+  border-color: rgba(224, 75, 56, 0.3);
+}
+
+.oneCStageSummary {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.oneCStageSummary::-webkit-details-marker {
+  display: none;
+}
+
+.oneCStageIndex {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: rgba(224, 75, 56, 0.11);
+  color: #c33d2d;
+  font-weight: 950;
+  place-items: center;
+}
+
+.oneCStageInfo {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.oneCStageInfo small {
+  color: #c33d2d;
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.oneCStageInfo h2 {
+  margin: 0;
+  color: #121c27;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.oneCTopics {
+  display: grid;
+  gap: 9px;
+  padding: 16px 18px 18px;
   border-top: 1px solid rgba(18, 28, 39, 0.07);
-  padding-top: 18px;
+}
+
+.oneCTopic {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(18, 28, 39, 0.075);
+  border-radius: 8px;
+  background: rgba(246, 244, 239, 0.45);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.oneCTopic:hover {
+  border-color: rgba(224, 75, 56, 0.25);
+}
+
+.oneCTopicNumber {
+  color: #9b756e;
+  font-size: 0.75rem;
+  font-weight: 950;
+}
+
+.oneCTopic > strong {
+  min-width: 0;
+  color: #121c27;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.oneCTopicDone {
+  background: rgba(24, 169, 153, 0.06);
+}
+
+.oneCTopicDone > strong {
+  color: rgba(18, 28, 39, 0.58);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 .theoryRow span {
@@ -1426,23 +1660,63 @@
     flex-direction: column;
   }
 
-  .legendStageSummary {
-    grid-template-columns: 42px minmax(0, 1fr);
+  .goalStageSummary {
+    grid-template-columns: 44px minmax(0, 1fr);
     align-items: start;
+    gap: 14px;
     padding: 16px;
   }
 
-  .legendStageNumber {
+  .goalStageIndex {
+    width: 44px;
+    height: 44px;
+  }
+
+  .goalStageSummary > :last-child {
+    grid-column: 2;
+  }
+
+  .goalStageBody {
+    padding: 16px;
+  }
+
+  .goalStageTimeMeta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .stageGoalRow {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .stageGoalRow > span:last-child {
+    grid-column: 2;
+  }
+
+  .oneCStageSummary {
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: start;
+    padding: 15px;
+  }
+
+  .oneCStageIndex {
     width: 42px;
     height: 42px;
   }
 
-  .legendStageSummary > :last-child {
+  .oneCStageSummary > :last-child {
     grid-column: 2;
   }
 
-  .legendItems {
-    padding: 16px;
+  .oneCTopics {
+    padding: 14px;
+  }
+
+  .oneCTopic {
+    grid-template-columns: 32px minmax(0, 1fr) 38px;
+    gap: 10px;
+    padding: 11px;
   }
 
   .goalRow {

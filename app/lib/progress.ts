@@ -20,6 +20,8 @@ export type AppState = {
   earningEntries: { date: string; value: number }[];
   habitProgress: Record<string, number>;
   completedGoals: Record<string, boolean>;
+  stageGoalsCompleted: Record<string, boolean>;
+  oneCCompleted: Record<string, boolean>;
 };
 
 export const emptyState: AppState = {
@@ -33,6 +35,8 @@ export const emptyState: AppState = {
   earningEntries: [],
   habitProgress: {},
   completedGoals: {},
+  stageGoalsCompleted: {},
+  oneCCompleted: {},
 };
 
 export const confidenceScore: Record<Confidence, number> = {

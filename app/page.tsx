@@ -8,6 +8,7 @@ import {
   Check,
   CheckCircle2,
   Code2,
+  Database,
   Download,
   Flame,
   Gauge,
@@ -20,8 +21,8 @@ import {
   RotateCcw,
   Save,
   Scale,
-  ScrollText,
   Sparkles,
+  Target,
   Timer,
   Trophy,
   Upload,
@@ -38,7 +39,8 @@ import {
   theoryStages,
 } from './data/progress';
 import { interview2TaskStages, interview2TheoryStages, Interview2Stage } from './data/interview2';
-import { legendStages, LegendStage } from './data/legend';
+import { goalStages, GoalStage } from './data/goalStages';
+import { oneCStages, OneCStage } from './data/oneC';
 import {
   AppState,
   Confidence,
@@ -67,26 +69,27 @@ type DashboardStats = {
   interview2Theory: number;
   interview2Tasks: number;
   interview2: number;
-  legend: number;
   course: number;
   vue: number;
   nextPizza: number;
   weight: number;
   habits: number;
   earnings: number;
+  oneC: number;
   total: number;
 };
 
-type Page = 'dashboard' | 'interview' | 'interview2' | 'legend' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'earnings';
+type Page = 'dashboard' | 'stages' | 'interview' | 'interview2' | 'oneC' | 'course' | 'vue' | 'nextPizza' | 'weight' | 'habits' | 'earnings';
 
 const storageKey = 'goals-progress-state-v1';
 const backupStorageKey = `${storageKey}-backup`;
 
 const navItems: { id: Page; label: string; icon: ElementType }[] = [
   { id: 'dashboard', label: 'Главная', icon: Home },
+  { id: 'stages', label: 'Цели', icon: Target },
   { id: 'interview', label: 'Собеседование', icon: Brain },
   { id: 'interview2', label: 'Собеседование 2.0', icon: Brain },
-  { id: 'legend', label: 'Легенда', icon: ScrollText },
+  { id: 'oneC', label: '1С', icon: Database },
   // { id: 'course', label: 'Курс фронтенд', icon: BookOpen }, // временно скрыто
   // { id: 'vue', label: 'Курс по Vue', icon: Code2 }, // временно скрыто
   // { id: 'nextPizza', label: 'Next Pizza', icon: Pizza }, // временно скрыто
@@ -105,7 +108,7 @@ type Habit = {
 const habits: Habit[] = [
   { id: 'abstinence', title: 'Воздержание', accent: '#6d7dfc' },
   { id: 'safe-content', title: 'Нет просмотру вредного контента и играм', accent: '#df5b7d' },
-  { id: 'food-number', title: 'Питание 1 раза в день без сладкого', accent: '#f28c38' },
+  { id: 'food-number', title: 'Питание 1 раза в день без сладкого на кухне', accent: '#f28c38' },
   { id: 'water-only', title: 'Пить только воду', accent: '#4c9be8' },
   { id: 'daily-routine', title: 'Выполнять планы на день', accent: '#18a999', },
 ];
@@ -268,26 +271,30 @@ function interview2TaskTotalPercent(stages: Interview2Stage[], state: AppState) 
   );
 }
 
-function legendItemId(stageId: string, index: number) {
+function stageGoalId(stageId: string, goalId: string) {
+  return `${stageId}:${goalId}`;
+}
+
+function goalStagePercent(stage: GoalStage, state: AppState) {
+  if (!stage.goals.length) return 0;
+  const completed = stage.goals.filter((goal) => state.stageGoalsCompleted[stageGoalId(stage.id, goal.id)]).length;
+  return Math.round((completed / stage.goals.length) * 100);
+}
+
+function oneCTopicId(stageId: string, index: number) {
   return `${stageId}:${index + 1}`;
 }
 
-function legendStageSummary(stage: LegendStage, state: AppState) {
-  const statuses = stage.items.map((_, index) => state.theoryStatus[legendItemId(stage.id, index)] ?? 'none');
-  return {
-    excellent: statuses.filter((status) => status === 'sure').length,
-    good: statuses.filter((status) => status === 'medium').length,
-    weak: statuses.filter((status) => status === 'none').length,
-    percent: average(statuses.map((status) => confidenceScore[status])),
-  };
+function oneCStagePercent(stage: OneCStage, state: AppState) {
+  if (!stage.topics.length) return 0;
+  const completed = stage.topics.filter((_, index) => state.oneCCompleted[oneCTopicId(stage.id, index)]).length;
+  return Math.round((completed / stage.topics.length) * 100);
 }
 
-function legendTotalPercent(state: AppState) {
-  return average(
-    legendStages.flatMap((stage) =>
-      stage.items.map((_, index) => confidenceScore[state.theoryStatus[legendItemId(stage.id, index)] ?? 'none']),
-    ),
-  );
+function oneCTotalPercent(state: AppState) {
+  const topics = oneCStages.flatMap((stage) => stage.topics.map((_, index) => oneCTopicId(stage.id, index)));
+  if (!topics.length) return 0;
+  return Math.round((topics.filter((id) => state.oneCCompleted[id]).length / topics.length) * 100);
 }
 
 export default function HomePage() {
@@ -345,7 +352,6 @@ export default function HomePage() {
     const interview2Theory = interview2TotalPercent(interview2TheoryStages, state);
     const interview2Tasks = interview2TaskTotalPercent(interview2TaskStages, state);
     const interview2 = average([interview2Theory, interview2Tasks]);
-    const legend = legendTotalPercent(state);
     const course = courseTotalPercent(courseModules, state);
     const vue = vuePercent(state);
     const nextPizza = nextPizzaPercent(state);
@@ -353,6 +359,7 @@ export default function HomePage() {
     const habits = habitsTotalPercent(state);
     const currentMonthEarnings = earningsForMonth(state.earningEntries, getMonthKey());
     const earnings = Math.min(100, Math.floor((currentMonthEarnings / monthlyEarningTarget) * 100));
+    const oneC = oneCTotalPercent(state);
     return {
       theory,
       tasks,
@@ -360,14 +367,14 @@ export default function HomePage() {
       interview2Theory,
       interview2Tasks,
       interview2,
-      legend,
       course,
       vue,
       nextPizza,
       weight,
       habits,
       earnings,
-      total: average([interview, interview2, legend, weight, habits, earnings]),
+      oneC,
+      total: average([interview, interview2, oneC, weight, habits, earnings]),
     };
   }, [state]);
 
@@ -453,6 +460,20 @@ export default function HomePage() {
     setState((current) => ({ ...current, completedGoals: { ...current.completedGoals, [id]: checked } }));
   };
 
+  const setStageGoal = (id: string, checked: boolean) => {
+    setState((current) => ({
+      ...current,
+      stageGoalsCompleted: { ...current.stageGoalsCompleted, [id]: checked },
+    }));
+  };
+
+  const setOneCTopic = (id: string, checked: boolean) => {
+    setState((current) => ({
+      ...current,
+      oneCCompleted: { ...current.oneCCompleted, [id]: checked },
+    }));
+  };
+
   return (
     <main className={styles.shell}>
       <aside className={styles.sidebar}>
@@ -506,6 +527,8 @@ export default function HomePage() {
 
       <section className={styles.content}>
         {page === 'dashboard' && <Dashboard stats={stats} state={state} setDashboardGoal={setDashboardGoal} />}
+        {page === 'stages' && <GoalStagesPage state={state} setStageGoal={setStageGoal} />}
+        {page === 'oneC' && <OneCPage state={state} stats={stats} setOneCTopic={setOneCTopic} />}
         {/* {page === 'course' && <CoursePage state={state} stats={stats} setCourseSection={setCourseSection} />} */}
         {page === 'vue' && <VuePage state={state} stats={stats} setVueModule={setVueModule} />}
         {/* {page === 'nextPizza' && <NextPizzaPage state={state} stats={stats} setNextPizzaStep={setNextPizzaStep} />} */}
@@ -538,16 +561,13 @@ export default function HomePage() {
             setTask={setTask}
           />
         )}
-        {page === 'legend' && (
-          <LegendPage state={state} stats={stats} setConfidence={setConfidence} />
-        )}
       </section>
     </main>
   );
 }
 
 function getGoalReadiness(source: (typeof dashboardGoals)[number]['source'], stats: DashboardStats) {
-  if (source === 'interview') return average([stats.interview, stats.interview2, stats.legend]);
+  if (source === 'interview') return average([stats.interview, stats.interview2]);
   // if (source === 'course') return stats.course; // временно скрыто
   // if (source === 'nextPizza') return stats.nextPizza; // временно скрыто
   if (source === 'weight') return stats.weight;
@@ -576,7 +596,7 @@ function Dashboard({
     // { label: 'Задачи', value: stats.tasks, color: '#f28c38', icon: Gauge },
     { label: 'Собеседование', value: stats.interview, color: '#6d7dfc', icon: Brain },
     { label: 'Собеседование 2.0', value: stats.interview2, color: '#18a999', icon: Brain },
-    { label: 'Легенда', value: stats.legend, color: '#c99a43', icon: ScrollText },
+    { label: '1С', value: stats.oneC, color: '#e04b38', icon: Database },
     // { label: 'Курс', value: stats.course, color: '#df5b7d', icon: BookOpen }, // временно скрыто
     // { label: 'Курс по Vue', value: stats.vue, color: '#42b883', icon: Code2 }, // временно скрыто
     // { label: 'Next Pizza', value: stats.nextPizza, color: '#f28c38', icon: Pizza }, // временно скрыто
@@ -1372,55 +1392,52 @@ function HabitsPage({
   );
 }
 
-function LegendPage({
+function GoalStagesPage({
   state,
-  stats,
-  setConfidence,
+  setStageGoal,
 }: {
   state: AppState;
-  stats: DashboardStats;
-  setConfidence: (id: string, value: Confidence) => void;
+  setStageGoal: (id: string, checked: boolean) => void;
 }) {
-  const [openStages, setOpenStages] = useState<Record<string, boolean>>({ [legendStages[0].id]: true });
-  const totalItems = legendStages.reduce((sum, stage) => sum + stage.items.length, 0);
-  const strongItems = legendStages.reduce((sum, stage) => sum + legendStageSummary(stage, state).excellent, 0);
-  const weakItems = legendStages.reduce((sum, stage) => sum + legendStageSummary(stage, state).weak, 0);
+  const orderedStages = [...goalStages].sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const [openStages, setOpenStages] = useState<Record<string, boolean>>({ [orderedStages[0].id]: true });
+  const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  const today = new Date(`${getLocalDateKey()}T00:00:00`);
 
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
       <SectionHeader
-        eyebrow="Поиск работы · личная история"
-        title="Легенда"
-        description="Дорожная карта по материалам легенды: от проверки фактов и короткой самопрезентации до защиты проектов, сложных HR-вопросов и полноценного пробного интервью. Оценивай только ответы, которые можешь дать вслух без подсказки."
-      >
-        <ProgressRing value={stats.legend} size={154} color="#c99a43" label="легенда" />
-      </SectionHeader>
+        eyebrow="30-дневные этапы"
+        title="Цели"
+        description="Каждый этап длится 30 дней. Цели закрываются вручную — отметь чекбокс только тогда, когда считаешь результат действительно достигнутым. Новые этапы и их цели добавляются через код."
+      />
 
-      <div className={styles.courseSummary}>
-        <div>
-          <strong>{strongItems}</strong>
-          <span>ответов отлично</span>
-        </div>
-        <div>
-          <strong>{totalItems - weakItems}</strong>
-          <span>ответов подготовлено</span>
-        </div>
-        <div>
-          <strong>{totalItems}</strong>
-          <span>контрольных точек</span>
-        </div>
-        <div>
-          <strong>{stats.legend}%</strong>
-          <span>общая готовность</span>
-        </div>
-      </div>
+      <div className={styles.goalStagesList}>
+        {orderedStages.map((stage, index) => {
+          const start = new Date(`${stage.startDate}T00:00:00`);
+          const end = new Date(start);
+          end.setDate(end.getDate() + stage.durationDays - 1);
+          const dayDiff = Math.floor((today.getTime() - start.getTime()) / 86_400_000);
+          const currentDay = Math.max(0, Math.min(stage.durationDays, dayDiff + 1));
+          const daysUntilStart = Math.max(0, -dayDiff);
+          const expired = today > end;
+          const daysRemaining = expired
+            ? 0
+            : Math.max(0, Math.floor((end.getTime() - today.getTime()) / 86_400_000) + 1);
+          const timePercent = (currentDay / stage.durationDays) * 100;
+          const completed = stage.goals.filter((goal) =>
+            state.stageGoalsCompleted[stageGoalId(stage.id, goal.id)],
+          ).length;
+          const percent = goalStagePercent(stage, state);
+          const timingLabel = daysUntilStart
+            ? `Старт через ${daysUntilStart} дн.`
+            : expired
+              ? 'Срок этапа завершён'
+              : `Осталось ${daysRemaining} дн. · ${currentDay}-й день из ${stage.durationDays}`;
 
-      <div className={styles.legendRoadmap}>
-        {legendStages.map((stage, stageIndex) => {
-          const summary = legendStageSummary(stage, state);
           return (
             <details
-              className={styles.legendStage}
+              className={`${styles.goalStageCard} ${expired ? styles.goalStageExpired : ''}`}
               key={stage.id}
               open={Boolean(openStages[stage.id])}
               onToggle={(event) => {
@@ -1428,33 +1445,138 @@ function LegendPage({
                 setOpenStages((current) => current[stage.id] === open ? current : { ...current, [stage.id]: open });
               }}
             >
-              <summary className={styles.legendStageSummary}>
-                <div className={styles.legendStageNumber}>{String(stageIndex + 1).padStart(2, '0')}</div>
-                <div className={styles.legendStageText}>
-                  <small>{stage.focus}</small>
+              <summary className={styles.goalStageSummary}>
+                <div className={styles.goalStageIndex}>{String(index + 1).padStart(2, '0')}</div>
+                <div className={styles.goalStageInfo}>
+                  <small>{timingLabel}</small>
                   <h2>{stage.title}</h2>
-                  <p>{stage.description}</p>
-                  <div className={styles.interview2Counts}>
-                    <span className={styles.countGood}>{summary.excellent} отлично</span>
-                    <span className={styles.countMedium}>{summary.good} хорошо</span>
-                    <span className={styles.countBad}>{summary.weak} плохо</span>
-                  </div>
+                  <p>{dateFormatter.format(start)} — {dateFormatter.format(end)}</p>
+                  <span>{completed} из {stage.goals.length} целей выполнено</span>
                 </div>
-                <ProgressRing value={summary.percent} size={78} stroke={8} color="#c99a43" />
+                <ProgressRing value={percent} size={84} stroke={8} color="#df5b7d" />
               </summary>
-              <div className={styles.legendItems}>
-                {stage.items.map((item, index) => {
-                  const id = legendItemId(stage.id, index);
+
+              <div className={styles.goalStageBody}>
+                <div className={styles.goalStageTimeMeta}>
+                  <strong>{expired ? '30-дневный период завершён' : daysUntilStart ? `До начала ${daysUntilStart} дн.` : `До окончания ${daysRemaining} дн.`}</strong>
+                  <span>{Math.floor(timePercent)}% времени прошло</span>
+                </div>
+                <div className={styles.goalStageTimeline}>
+                  <span style={{ width: `${timePercent}%` }} />
+                </div>
+                <div className={styles.goalStageGoals}>
+                  {stage.goals.map((goal) => {
+                    const id = stageGoalId(stage.id, goal.id);
+                    const checked = Boolean(state.stageGoalsCompleted[id]);
+                    return (
+                      <label className={`${styles.stageGoalRow} ${checked ? styles.stageGoalDone : ''} ${expired ? styles.stageGoalDisabled : ''}`} key={id}>
+                        <span className={styles.goalCheck}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={expired}
+                            onChange={(event) => setStageGoal(id, event.target.checked)}
+                          />
+                          <span><CheckCircle2 size={20} /></span>
+                        </span>
+                        <strong>{goal.title}</strong>
+                        <span>{checked ? 'Выполнено' : expired ? 'Не выполнено' : 'В работе'}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </details>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+function OneCPage({
+  state,
+  stats,
+  setOneCTopic,
+}: {
+  state: AppState;
+  stats: DashboardStats;
+  setOneCTopic: (id: string, checked: boolean) => void;
+}) {
+  const [openStages, setOpenStages] = useState<Record<string, boolean>>({ [oneCStages[0].id]: true });
+  const totalTopics = oneCStages.reduce((sum, stage) => sum + stage.topics.length, 0);
+  const completedTopics = oneCStages.reduce(
+    (sum, stage) => sum + stage.topics.filter((_, index) => state.oneCCompleted[oneCTopicId(stage.id, index)]).length,
+    0,
+  );
+  const completedStages = oneCStages.filter((stage) => oneCStagePercent(stage, state) >= 100).length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+      <SectionHeader
+        eyebrow="Курс разработки"
+        title="1С"
+        description="Закрывай темы последовательно: от основ платформы и технических заданий до рынка, резюме и вопросов с собеседований. Каждый пункт напрямую влияет на прогресс своего этапа и всего курса."
+      >
+        <ProgressRing value={stats.oneC} size={154} color="#e04b38" label="курс" />
+      </SectionHeader>
+
+      <div className={styles.courseSummary}>
+        <div>
+          <strong>{completedTopics}</strong>
+          <span>тем пройдено</span>
+        </div>
+        <div>
+          <strong>{totalTopics}</strong>
+          <span>тем всего</span>
+        </div>
+        <div>
+          <strong>{completedStages} / {oneCStages.length}</strong>
+          <span>этапов закрыто</span>
+        </div>
+      </div>
+
+      <div className={styles.oneCStages}>
+        {oneCStages.map((stage, stageIndex) => {
+          const percent = oneCStagePercent(stage, state);
+          const completed = stage.topics.filter((_, index) =>
+            state.oneCCompleted[oneCTopicId(stage.id, index)],
+          ).length;
+          return (
+            <details
+              className={styles.oneCStage}
+              key={stage.id}
+              open={Boolean(openStages[stage.id])}
+              onToggle={(event) => {
+                const open = event.currentTarget.open;
+                setOpenStages((current) => current[stage.id] === open ? current : { ...current, [stage.id]: open });
+              }}
+            >
+              <summary className={styles.oneCStageSummary}>
+                <div className={styles.oneCStageIndex}>{String(stageIndex + 1).padStart(2, '0')}</div>
+                <div className={styles.oneCStageInfo}>
+                  <small>{completed} из {stage.topics.length} тем</small>
+                  <h2>{stage.title}</h2>
+                </div>
+                <ProgressRing value={percent} size={78} stroke={8} color="#e04b38" />
+              </summary>
+              <div className={styles.oneCTopics}>
+                {stage.topics.map((topic, topicIndex) => {
+                  const id = oneCTopicId(stage.id, topicIndex);
+                  const checked = Boolean(state.oneCCompleted[id]);
                   return (
-                    <div className={styles.taskRow} key={id}>
-                      <strong>{item}</strong>
-                      <SegmentedControl
-                        value={state.theoryStatus[id] ?? 'none'}
-                        options={interview2Options}
-                        onChange={(value) => setConfidence(id, value)}
-                        tone="task"
-                      />
-                    </div>
+                    <label className={`${styles.oneCTopic} ${checked ? styles.oneCTopicDone : ''}`} key={id}>
+                      <span className={styles.oneCTopicNumber}>{String(topicIndex + 1).padStart(2, '0')}</span>
+                      <strong>{topic}</strong>
+                      <span className={styles.goalCheck}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(event) => setOneCTopic(id, event.target.checked)}
+                        />
+                        <span><CheckCircle2 size={20} /></span>
+                      </span>
+                    </label>
                   );
                 })}
               </div>
